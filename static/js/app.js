@@ -71,6 +71,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ── Header avatar + dropdown ───────────────────────────────────────────────────
+window.toggleUserMenu = function() {
+  const menu = document.getElementById('dropdown-menu');
+  const btn  = document.getElementById('avatar-btn');
+  if (!menu) return;
+  const isOpen = menu.classList.toggle('open');
+  if (btn) btn.setAttribute('aria-expanded', isOpen);
+};
+
+window.closeUserMenu = function() {
+  const menu = document.getElementById('dropdown-menu');
+  const btn  = document.getElementById('avatar-btn');
+  if (menu) menu.classList.remove('open');
+  if (btn)  btn.setAttribute('aria-expanded', 'false');
+};
+
+// Close on outside click
+document.addEventListener('click', e => {
+  const userMenu = document.getElementById('user-menu');
+  if (userMenu && !userMenu.contains(e.target)) {
+    closeUserMenu();
+  }
+});
+
+function _loadUserHeader(u) {
+  const btn = document.getElementById('avatar-btn');
+  if (!btn) return;
+  if (u.picture) {
+    btn.innerHTML = `<img src="${u.picture}" referrerpolicy="no-referrer" alt="">`;
+  } else {
+    btn.textContent = (u.name || u.email || 'U')[0].toUpperCase();
+  }
+  const menuAvatar = document.getElementById('menu-avatar');
+  if (menuAvatar) {
+    menuAvatar.src = u.picture || '';
+    menuAvatar.style.display = u.picture ? 'block' : 'none';
+  }
+  _setText('menu-name',  u.name  || u.email || 'User');
+  _setText('menu-email', u.email || '');
+
+  // Units label
+  const unitsLabel = document.getElementById('current-units');
+  if (unitsLabel) unitsLabel.textContent = state.units === 'imperial' ? 'Imperial' : 'Metric';
+}
+
 // ── Profile ───────────────────────────────────────────────────────────────────
 function _initProfile() {
   const u = window.__USER__;
@@ -94,10 +139,35 @@ function _initProfile() {
     if (fallback) fallback.textContent = first[0].toUpperCase();
   }
 
+  // Populate header avatar + dropdown
+  _loadUserHeader(u);
+
+  // Wire dropdown menu items
+  const btnAvatar   = document.getElementById('avatar-btn');
+  const btnSettings = document.getElementById('menu-settings');
+  const btnUnits    = document.getElementById('menu-units');
+  const btnLogout   = document.getElementById('menu-logout');
+  if (btnAvatar)   btnAvatar.addEventListener('click', e => { e.stopPropagation(); toggleUserMenu(); });
+  if (btnSettings) btnSettings.addEventListener('click', () => { navigateTo('/profile'); closeUserMenu(); });
+  if (btnUnits)    btnUnits.addEventListener('click', _toggleUnitsMenu);
+  if (btnLogout)   btnLogout.addEventListener('click', () => { window.location.href = '/auth/logout'; });
+
   // Greet
   const hour  = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('home-greeting').textContent = `${greet}, ${first}! Ready to shred?`;
+}
+
+function _toggleUnitsMenu() {
+  const newUnits = state.units === 'metric' ? 'imperial' : 'metric';
+  state.units = newUnits;
+  localStorage.setItem('mt_units', newUnits);
+  _savePreference('units', newUnits);
+  const unitsLabel = document.getElementById('current-units');
+  if (unitsLabel) unitsLabel.textContent = newUnits === 'imperial' ? 'Imperial' : 'Metric';
+  const unitsSel = document.getElementById('units-select');
+  if (unitsSel) unitsSel.value = newUnits;
+  closeUserMenu();
 }
 
 // Called when profile tab is shown — loads prefs + stats from API
@@ -266,18 +336,6 @@ function _initSettings() {
     mapSel.addEventListener('change', () => {
       _savePreference('mapView', mapSel.value);
     });
-  }
-
-  // Danger zone
-  const btnLogout = document.getElementById('btn-logout');
-  const btnDelete = document.getElementById('btn-delete-data');
-  if (btnLogout) {
-    btnLogout.addEventListener('click', () => {
-      window.location.href = '/auth/logout';
-    });
-  }
-  if (btnDelete) {
-    btnDelete.addEventListener('click', _deleteMyData);
   }
 }
 

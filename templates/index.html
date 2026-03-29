@@ -73,6 +73,28 @@
 <!-- ── Main App ────────────────────────────────────────────────────────── -->
 <div id="app" style="display:none">
 
+  <!-- ── App Header ──────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <span class="app-logo">&#x1F3D4; MayrhofenTracker</span>
+    <div class="user-menu" id="user-menu">
+      <button class="avatar-btn" id="avatar-btn" aria-label="User menu" aria-haspopup="true" aria-expanded="false"></button>
+      <div class="dropdown-menu" id="dropdown-menu" role="menu">
+        <div class="dropdown-header">
+          <img id="menu-avatar" class="menu-avatar" src="" referrerpolicy="no-referrer" alt="">
+          <div>
+            <div class="menu-name" id="menu-name"></div>
+            <div class="menu-email" id="menu-email"></div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" role="menuitem" id="menu-settings">&#x2699;&#xFE0F;&nbsp; Settings</a>
+        <a class="dropdown-item" role="menuitem" id="menu-units">&#x1F4D0;&nbsp; Units: <span id="current-units">Metric</span></a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item logout-item" role="menuitem" id="menu-logout">&#x1F6AA;&nbsp; Log Out</a>
+      </div>
+    </div>
+  </header>
+
   <!-- Tab: Map (full screen) -->
   <div id="tab-map" class="tab-content active">
     <div id="map-container">
@@ -375,18 +397,6 @@
               <option value="he">&#x05E2;&#x05D1;&#x05E8;&#x05D9;&#x05EA;</option>
             </select>
           </div>
-        </div>
-      </div>
-
-      <!-- Account / Danger Zone -->
-      <div class="card danger-zone-card">
-        <div class="card-header">
-          <span class="card-icon">&#x1F6AA;</span>
-          <span class="card-title">Account</span>
-        </div>
-        <div class="danger-zone-btns">
-          <button class="btn-logout-big" id="btn-logout">Log Out</button>
-          <button class="btn-delete-data" id="btn-delete-data">Delete All My Data</button>
         </div>
       </div>
 

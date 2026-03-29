@@ -443,40 +443,48 @@ class Handler(BaseHTTPRequestHandler):
 _weather_cache     = None
 _weather_cache_ts  = 0
 _WEATHER_TTL       = 30 * 60  # 30 minutes
+_weather_lock      = threading.Lock()
 
 def _get_weather():
     global _weather_cache, _weather_cache_ts
     now = time.time()
+    # Fast path — serve from cache without acquiring lock
     if _weather_cache and (now - _weather_cache_ts) < _WEATHER_TTL:
         age = int(now - _weather_cache_ts)
         return {**_weather_cache, "_cached_age_s": age}
-    try:
-        url = (
-            "https://api.open-meteo.com/v1/forecast"
-            "?latitude=47.1692&longitude=11.8651"
-            "&current=temperature_2m,relative_humidity_2m,apparent_temperature"
-            ",weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m"
-            "&hourly=temperature_2m,weather_code,wind_speed_10m,snowfall"
-            "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset"
-            ",snowfall_sum,weather_code"
-            "&timezone=Europe%2FVienna&forecast_days=3"
-        )
-        import urllib.request as _ur
-        req = _ur.Request(url, headers={"User-Agent": "MayrhofenTracker/1.0 (ski tracking app)"})
-        with _ur.urlopen(req, timeout=10) as r:
-            data = json.loads(r.read())
-        data["_fetched_at"] = int(now)
-        data["_cached_age_s"] = 0
-        _weather_cache    = data
-        _weather_cache_ts = now
-        print(f"[weather] fetched fresh data at {datetime.utcnow().isoformat()}")
-        return data
-    except Exception as e:
-        print(f"[weather] fetch error: {e}")
-        if _weather_cache:
+    # Slow path — lock prevents concurrent fetches (avoids 429 on cold start)
+    with _weather_lock:
+        # Re-check: another thread may have fetched while we waited for the lock
+        if _weather_cache and (now - _weather_cache_ts) < _WEATHER_TTL:
             age = int(now - _weather_cache_ts)
-            return {**_weather_cache, "_cached_age_s": age, "_stale": True}
-        return {"error": str(e)}
+            return {**_weather_cache, "_cached_age_s": age}
+        try:
+            url = (
+                "https://api.open-meteo.com/v1/forecast"
+                "?latitude=47.1692&longitude=11.8651"
+                "&current=temperature_2m,relative_humidity_2m,apparent_temperature"
+                ",weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m"
+                "&hourly=temperature_2m,weather_code,wind_speed_10m,snowfall"
+                "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset"
+                ",snowfall_sum,weather_code"
+                "&timezone=Europe%2FVienna&forecast_days=3"
+            )
+            import urllib.request as _ur
+            req = _ur.Request(url, headers={"User-Agent": "MayrhofenTracker/1.0 (ski tracking app)"})
+            with _ur.urlopen(req, timeout=10) as r:
+                data = json.loads(r.read())
+            data["_fetched_at"] = int(now)
+            data["_cached_age_s"] = 0
+            _weather_cache    = data
+            _weather_cache_ts = now
+            print(f"[weather] fetched fresh data at {datetime.utcnow().isoformat()}")
+            return data
+        except Exception as e:
+            print(f"[weather] fetch error: {e}")
+            if _weather_cache:
+                age = int(now - _weather_cache_ts)
+                return {**_weather_cache, "_cached_age_s": age, "_stale": True}
+            return {"error": str(e)}
 
 # ── Seed ─────────────────────────────────────────────────────────────────────
 def _run_seed(force=False):

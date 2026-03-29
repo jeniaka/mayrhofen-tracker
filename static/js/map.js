@@ -20,7 +20,7 @@ window.initMap = function() {
   if (!el) return;
 
   _map = L.map('map', {
-    center: RESORT_CENTER,
+    center: [47.1600, 11.8500],
     zoom:   14,
     zoomControl: false,
     maxBounds: [[47.04, 11.60], [47.24, 11.98]],
@@ -28,28 +28,26 @@ window.initMap = function() {
     attributionControl: false,
   });
 
-  // Base tile layers
+  // Base tile layers — OSM is default (always works, no API key)
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  });
+  const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    maxZoom: 17,
+    attribution: '© OpenTopoMap',
+  });
   const satellite = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { maxZoom: 19, attribution: '© Esri, Maxar, Earthstar Geographics' }
-  );
-  const topo = L.tileLayer(
-    'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-    { maxZoom: 17, attribution: '© OpenTopoMap' }
-  );
-  // Labels overlay (roads, place names on top of satellite)
-  const labels = L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}',
-    { maxZoom: 19, opacity: 0.6, pane: 'overlayPane' }
+    { maxZoom: 19, attribution: '© Esri' }
   );
 
-  satellite.addTo(_map);
-  labels.addTo(_map);
+  osm.addTo(_map);  // OSM loads reliably everywhere
 
-  // Layer control
+  // Layer control (top-right, collapsed)
   L.control.layers(
-    { 'Satellite': satellite, 'Topo': topo },
-    { 'Labels': labels },
+    { 'Street Map': osm, 'Topo': topo, 'Satellite': satellite },
+    {},
     { position: 'topright', collapsed: true }
   ).addTo(_map);
 
@@ -373,10 +371,10 @@ function _initMiniMap() {
     touchZoom: false,
   });
 
-  L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { maxZoom: 19, opacity: 0.85 }
-  ).addTo(_miniMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    opacity: 0.85,
+  }).addTo(_miniMap);
 
   // Draw slope outlines on mini map too
   if (state.slopes) {
