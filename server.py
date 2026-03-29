@@ -136,6 +136,11 @@ class Handler(BaseHTTPRequestHandler):
         path   = parsed.path
         qs     = parse_qs(parsed.query)
 
+        # Root → home
+        if path == "/":
+            self.redirect("/home")
+            return
+
         # Health check
         if path == "/api/health":
             self.json_ok({"status": "ok", "db": _db.DB_STATUS, "ts": int(time.time())})
@@ -401,7 +406,8 @@ def _get_weather():
             "&timezone=Europe%2FVienna&forecast_days=3"
         )
         import urllib.request as _ur
-        with _ur.urlopen(url, timeout=10) as r:
+        req = _ur.Request(url, headers={"User-Agent": "MayrhofenTracker/1.0 (ski tracking app)"})
+        with _ur.urlopen(req, timeout=10) as r:
             data = json.loads(r.read())
         data["_fetched_at"] = int(now)
         data["_cached_age_s"] = 0

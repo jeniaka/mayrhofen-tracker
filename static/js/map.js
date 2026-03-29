@@ -21,19 +21,37 @@ window.initMap = function() {
 
   _map = L.map('map', {
     center: RESORT_CENTER,
-    zoom:   RESORT_ZOOM,
+    zoom:   14,
     zoomControl: false,
     maxBounds: [[47.04, 11.60], [47.24, 11.98]],
     maxBoundsViscosity: 0.85,
     attributionControl: false,
   });
 
-  // Base tile layer — OpenTopoMap for terrain feel
-  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 17,
-    attribution: '© OpenTopoMap',
-    opacity: 0.9,
-  }).addTo(_map);
+  // Base tile layers
+  const satellite = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, attribution: '© Esri, Maxar, Earthstar Geographics' }
+  );
+  const topo = L.tileLayer(
+    'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    { maxZoom: 17, attribution: '© OpenTopoMap' }
+  );
+  // Labels overlay (roads, place names on top of satellite)
+  const labels = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, opacity: 0.6, pane: 'overlayPane' }
+  );
+
+  satellite.addTo(_map);
+  labels.addTo(_map);
+
+  // Layer control
+  L.control.layers(
+    { 'Satellite': satellite, 'Topo': topo },
+    { 'Labels': labels },
+    { position: 'topright', collapsed: true }
+  ).addTo(_map);
 
   // Attribution (small)
   L.control.attribution({ position: 'bottomright', prefix: false }).addTo(_map);
@@ -355,10 +373,10 @@ function _initMiniMap() {
     touchZoom: false,
   });
 
-  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 17,
-    opacity: 0.8,
-  }).addTo(_miniMap);
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, opacity: 0.85 }
+  ).addTo(_miniMap);
 
   // Draw slope outlines on mini map too
   if (state.slopes) {

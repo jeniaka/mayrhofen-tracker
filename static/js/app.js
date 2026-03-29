@@ -13,6 +13,33 @@ window.__STATE__ = {
 
 const state = window.__STATE__;
 
+// ── URL routing ───────────────────────────────────────────────────────────────
+const ROUTE_TO_TAB = {
+  '/home':    'home',
+  '/map':     'map',
+  '/track':   'tracking',
+  '/stats':   'stats',
+  '/profile': 'profile',
+};
+const TAB_TO_ROUTE = {
+  home:     '/home',
+  map:      '/map',
+  tracking: '/track',
+  stats:    '/stats',
+  profile:  '/profile',
+};
+
+function navigateTo(route) {
+  const tab = ROUTE_TO_TAB[route] || 'map';
+  window.history.pushState({ tab }, '', route);
+  switchTab(tab);
+}
+
+window.addEventListener('popstate', e => {
+  const tab = (e.state && e.state.tab) || ROUTE_TO_TAB[window.location.pathname] || 'map';
+  switchTab(tab);
+});
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.__LOGGED_IN__) {
@@ -32,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
   _initWebcams && _initWebcams();
   _loadSessionHistory();
   _loadSeasonStats();
+
+  // Set initial tab from URL
+  const initTab = ROUTE_TO_TAB[window.location.pathname] || 'map';
+  window.history.replaceState({ tab: initTab }, '', TAB_TO_ROUTE[initTab] || '/map');
+  switchTab(initTab);
 
   // Register service worker
   if ('serviceWorker' in navigator) {
@@ -62,11 +94,14 @@ function _initProfile() {
 // ── Bottom nav tabs ───────────────────────────────────────────────────────────
 function _initNav() {
   document.querySelectorAll('.nav-tab').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    btn.addEventListener('click', () => {
+      const route = TAB_TO_ROUTE[btn.dataset.tab] || '/map';
+      navigateTo(route);
+    });
   });
 
   document.getElementById('btn-quick-track').addEventListener('click', () => {
-    switchTab('tracking');
+    navigateTo('/track');
   });
 }
 
@@ -148,7 +183,7 @@ function _renderTours() {
 
   el.querySelectorAll('.tour-item').forEach(item => {
     item.addEventListener('click', () => {
-      switchTab('map');
+      navigateTo('/map');
       window.highlightTour && window.highlightTour(item.dataset.tour);
     });
   });

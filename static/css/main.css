@@ -590,41 +590,46 @@ select { font: inherit; }
 }
 .webcams-row::-webkit-scrollbar { height: 0; }
 .webcam-card {
-  flex: 0 0 200px;
-  border-radius: 10px;
+  flex: 0 0 130px;
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
   background: var(--bg3);
   border: 1px solid var(--card-border);
-  transition: transform 0.15s;
+  transition: transform 0.15s, border-color 0.15s;
 }
-.webcam-card:active { transform: scale(0.97); }
-.webcam-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  display: block;
-  background: var(--bg3);
+.webcam-card:active { transform: scale(0.96); }
+.webcam-link-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 10px 12px;
+  gap: 6px;
+  text-align: center;
+  min-height: 110px;
 }
-.webcam-card-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.75));
-  padding: 16px 8px 8px;
+.webcam-link-card:hover { border-color: rgba(0,188,212,0.4); }
+.webcam-link-icon {
+  font-size: 28px;
+  line-height: 1;
 }
-.webcam-name {
-  font-size: 0.78rem;
+.webcam-link-name {
+  font-size: 0.75rem;
   font-weight: 700;
-  color: white;
-  line-height: 1.2;
+  color: var(--text);
+  line-height: 1.25;
 }
 .webcam-elev {
   font-size: 0.65rem;
   color: var(--accent);
-  margin-top: 1px;
+  font-weight: 600;
+}
+.webcam-link-cta {
+  font-size: 0.65rem;
+  color: var(--text2);
+  margin-top: 2px;
 }
 .webcam-offline {
   display: flex;
