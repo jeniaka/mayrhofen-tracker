@@ -1,7 +1,7 @@
 /* ── MayrhofenTracker Service Worker ─────────────────────────────────────────── */
-const CACHE_NAME = 'mt-v1';
+const CACHE_NAME = 'mt-v2';
 const STATIC_CACHE = [
-  '/',
+  '/home',
   '/static/css/main.css',
   '/static/css/map.css',
   '/static/css/stats.css',
@@ -10,6 +10,7 @@ const STATIC_CACHE = [
   '/static/js/tracking.js',
   '/static/js/stats.js',
   '/static/js/weather.js',
+  '/static/js/webcam.js',
   '/static/js/i18n.js',
   '/static/data/slopes.json',
   '/static/data/lifts.json',
@@ -38,7 +39,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   // Cache map tiles
-  if (url.hostname.includes('tile.opentopomap.org') || url.hostname.includes('tile.openstreetmap.org')) {
+  if (url.hostname.includes('tile.opentopomap.org') || url.hostname.includes('tile.openstreetmap.org') || url.hostname.includes('arcgisonline.com')) {
     event.respondWith(
       caches.open(MAP_TILE_CACHE).then(cache =>
         cache.match(event.request).then(cached => {
