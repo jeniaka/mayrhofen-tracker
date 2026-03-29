@@ -252,20 +252,9 @@ class Handler(BaseHTTPRequestHandler):
             self.json_ok(result)
             return
 
-        # Weather (proxy to Open-Meteo)
+        # Weather (proxy to Open-Meteo with 30-min cache)
         if path == "/api/weather":
-            import urllib.request as _ur
-            try:
-                url = ("https://api.open-meteo.com/v1/forecast"
-                       "?latitude=47.17&longitude=11.87"
-                       "&current=temperature_2m,windspeed_10m,weathercode,snowfall"
-                       "&daily=temperature_2m_max,temperature_2m_min,snowfall_sum,weathercode"
-                       "&timezone=Europe%2FVienna&forecast_days=3")
-                with _ur.urlopen(url, timeout=8) as r:
-                    data = json.loads(r.read())
-                self.json_ok(data)
-            except Exception as e:
-                self.json_ok({"error": str(e)}, 502)
+            self.json_ok(_get_weather())
             return
 
         # Sessions list
@@ -388,6 +377,44 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Allow", "GET, POST, DELETE, OPTIONS")
         self.end_headers()
 
+
+# ── Weather cache ─────────────────────────────────────────────────────────────
+_weather_cache     = None
+_weather_cache_ts  = 0
+_WEATHER_TTL       = 30 * 60  # 30 minutes
+
+def _get_weather():
+    global _weather_cache, _weather_cache_ts
+    now = time.time()
+    if _weather_cache and (now - _weather_cache_ts) < _WEATHER_TTL:
+        age = int(now - _weather_cache_ts)
+        return {**_weather_cache, "_cached_age_s": age}
+    try:
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            "?latitude=47.1692&longitude=11.8651"
+            "&current=temperature_2m,relative_humidity_2m,apparent_temperature"
+            ",weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m"
+            "&hourly=temperature_2m,weather_code,wind_speed_10m,snowfall"
+            "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset"
+            ",snowfall_sum,weather_code"
+            "&timezone=Europe%2FVienna&forecast_days=3"
+        )
+        import urllib.request as _ur
+        with _ur.urlopen(url, timeout=10) as r:
+            data = json.loads(r.read())
+        data["_fetched_at"] = int(now)
+        data["_cached_age_s"] = 0
+        _weather_cache    = data
+        _weather_cache_ts = now
+        print(f"[weather] fetched fresh data at {datetime.utcnow().isoformat()}")
+        return data
+    except Exception as e:
+        print(f"[weather] fetch error: {e}")
+        if _weather_cache:
+            age = int(now - _weather_cache_ts)
+            return {**_weather_cache, "_cached_age_s": age, "_stale": True}
+        return {"error": str(e)}
 
 # ── Seed ─────────────────────────────────────────────────────────────────────
 def _run_seed(force=False):

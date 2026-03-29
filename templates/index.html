@@ -125,6 +125,24 @@
         </div>
         <div id="weather-content" class="weather-loading">Loading weather...</div>
       </div>
+      <!-- Live Webcams -->
+      <div class="card" id="webcams-card">
+        <div class="card-header">
+          <span class="card-icon">📹</span>
+          <span class="card-title">Live Webcams</span>
+          <span class="card-subtitle" id="webcam-update-label">Updated every 5 min</span>
+        </div>
+        <div id="webcams-row" class="webcams-row">
+          <div class="muted">Loading webcams...</div>
+        </div>
+      </div>
+      <!-- Webcam lightbox -->
+      <div id="webcam-lightbox" class="webcam-lightbox" style="display:none">
+        <button id="webcam-lightbox-close" class="webcam-lightbox-close">✕</button>
+        <img id="webcam-lightbox-img" src="" alt="Webcam" class="webcam-lightbox-img">
+        <div id="webcam-lightbox-label" class="webcam-lightbox-label"></div>
+      </div>
+
       <!-- Today's session -->
       <div class="card" id="today-card">
         <div class="card-header">
@@ -388,6 +406,7 @@
 <!-- App JS -->
 <script src="/static/js/i18n.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="/static/js/webcam.js"></script>
 <script src="/static/js/map.js"></script>
 <script src="/static/js/tracking.js"></script>
 <script src="/static/js/stats.js"></script>

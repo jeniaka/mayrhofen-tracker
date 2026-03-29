@@ -109,39 +109,48 @@ function _drawLifts() {
   state.lifts.forEach(lift => {
     if (!lift.bottom || !lift.top) return;
     if (lift.sector === 'hintertux') return; // drawn on toggle
-    const line = L.polyline([lift.bottom, lift.top], {
-      color: '#00BCD4',
-      weight: 2,
-      dashArray: '6 4',
-      opacity: 0.7,
-    }).addTo(_map);
-    line.bindPopup(_liftPopup(lift));
-    line.on('click', () => line.openPopup());
-
-    // Lift icon at midpoint
-    const mid = [
-      (lift.bottom[0] + lift.top[0]) / 2,
-      (lift.bottom[1] + lift.top[1]) / 2,
-    ];
-    const icon = L.divIcon({
-      className: '',
-      html: _liftIconHtml(lift.type),
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-    });
-    L.marker(mid, { icon }).addTo(_map)
-      .bindPopup(_liftPopup(lift));
+    _drawOneLift(lift, _map);
   });
 }
 
+function _drawOneLift(lift, targetMap) {
+  const popup = _liftPopup(lift);
+
+  // Bold black dashed line
+  const line = L.polyline([lift.bottom, lift.top], {
+    color:     '#000000',
+    weight:    3,
+    opacity:   0.85,
+    dashArray: '10, 6',
+    lineCap:   'round',
+  }).addTo(targetMap);
+  line.bindPopup(popup);
+
+  // Circle markers at base and top
+  const dotStyle = { radius: 5, color: '#000', fillColor: '#fff', fillOpacity: 1, weight: 2 };
+  L.circleMarker(lift.bottom, dotStyle).addTo(targetMap).bindPopup(popup);
+  L.circleMarker(lift.top,    dotStyle).addTo(targetMap).bindPopup(popup);
+
+  // Icon at midpoint — gondolas & cable cars only; small dot for T-bars/carpets
+  const mid = [
+    (lift.bottom[0] + lift.top[0]) / 2,
+    (lift.bottom[1] + lift.top[1]) / 2,
+  ];
+  const iconHtml = _liftIconHtml(lift.type);
+  if (iconHtml) {
+    const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [22, 22], iconAnchor: [11, 11] });
+    L.marker(mid, { icon }).addTo(targetMap).bindPopup(popup);
+  }
+
+  return [line];
+}
+
 function _liftIconHtml(type) {
-  const icons = {
-    gondola:   '&#x1F6A0;',
-    chairlift: '&#x1F6CB;',
-    tbar:      '&#x1F489;',
-    carpet:    '&#x25AC;',
-  };
-  return `<div style="font-size:14px;text-align:center;line-height:20px">${icons[type] || '&#x1F6A0;'}</div>`;
+  // Only show emoji icon for gondolas and chairlifts; skip T-bars/carpets
+  const icons = { gondola: '🚡', chairlift: '🪑' };
+  if (!icons[type]) return null;
+  return `<div style="font-size:15px;text-align:center;line-height:22px;
+    text-shadow:0 1px 3px rgba(0,0,0,0.6);filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5))">${icons[type]}</div>`;
 }
 
 function _liftPopup(lift) {
@@ -314,11 +323,7 @@ function _toggleHintertux() {
       });
       htLifts.forEach(lift => {
         if (!lift.bottom || !lift.top) return;
-        const line = L.polyline([lift.bottom, lift.top], {
-          color: '#00BCD4', weight: 2, dashArray: '6 4', opacity: 0.7,
-        }).addTo(_map);
-        line.bindPopup(_liftPopup(lift));
-        _hintertuxLayers.push(line);
+        _drawOneLift(lift, _map); // returns layers but we don't need to track individually
       });
     } else {
       _hintertuxLayers.forEach(l => l.addTo(_map));

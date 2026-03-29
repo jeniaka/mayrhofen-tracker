@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   _initSettings();
   _renderTours();
   _loadWeather();
+  _initWebcams && _initWebcams();
   _loadSessionHistory();
   _loadSeasonStats();
 

@@ -232,30 +232,55 @@ select { font: inherit; }
 /* ── Weather Card ───────────────────────────────────────────────────────────── */
 .weather-loading { color: var(--text3); font-size: 0.875rem; }
 
+.snow-badge {
+  background: linear-gradient(135deg, rgba(0,188,212,0.2), rgba(33,150,243,0.2));
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.03em;
+}
 .weather-current {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
+  margin-bottom: 10px;
 }
-.weather-temp { font-size: 2.2rem; font-weight: 700; color: var(--text); }
-.weather-icon { font-size: 2.2rem; }
-.weather-details { color: var(--text2); font-size: 0.85rem; }
+.weather-icon { font-size: 2.6rem; line-height: 1; }
+.weather-main { display: flex; flex-direction: column; gap: 2px; }
+.weather-temp { font-family: 'Outfit', sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--text); line-height: 1; }
+.weather-feels { color: var(--text2); font-size: 0.8rem; }
+.weather-desc  { color: var(--text); font-size: 0.85rem; font-weight: 500; }
+.weather-details-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-bottom: 2px;
+}
+.weather-updated { color: var(--text3); font-size: 0.72rem; margin-inline-start: auto; }
 .weather-forecast {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 10px;
 }
 .weather-day {
   flex: 1;
   background: var(--bg3);
   border-radius: 8px;
-  padding: 8px;
+  padding: 8px 6px;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
-.weather-day .day-name { color: var(--text2); margin-bottom: 4px; }
-.weather-day .day-icon { font-size: 1.3rem; margin: 4px 0; }
+.weather-day .day-name { color: var(--text2); margin-bottom: 3px; font-weight: 600; }
+.weather-day .day-icon { font-size: 1.3rem; margin: 3px 0; }
 .weather-day .day-temp { color: var(--text); font-weight: 600; }
+.weather-day .day-snow { color: var(--accent); font-size: 0.7rem; margin-top: 2px; }
 
 /* ── Tours ──────────────────────────────────────────────────────────────────── */
 .tours-list { display: flex; flex-direction: column; gap: 8px; }
@@ -548,6 +573,109 @@ select { font: inherit; }
   color: var(--accent);
 }
 .season-lbl { color: var(--text3); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+/* ── Webcams ────────────────────────────────────────────────────────────────── */
+.card-subtitle {
+  color: var(--text3);
+  font-size: 0.72rem;
+  margin-inline-start: auto;
+}
+.webcams-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  margin: 0 -2px;
+}
+.webcams-row::-webkit-scrollbar { height: 0; }
+.webcam-card {
+  flex: 0 0 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background: var(--bg3);
+  border: 1px solid var(--card-border);
+  transition: transform 0.15s;
+}
+.webcam-card:active { transform: scale(0.97); }
+.webcam-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+  background: var(--bg3);
+}
+.webcam-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  padding: 16px 8px 8px;
+}
+.webcam-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+.webcam-elev {
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-top: 1px;
+}
+.webcam-offline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: var(--text3);
+  font-size: 0.78rem;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Webcam lightbox ────────────────────────────────────────────────────────── */
+.webcam-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.webcam-lightbox-img {
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.webcam-lightbox-label {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 12px;
+  text-align: center;
+}
+.webcam-lightbox-close {
+  position: absolute;
+  top: calc(var(--safe-top) + 16px);
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ── Scrollbar ──────────────────────────────────────────────────────────────── */
 .screen-scroll::-webkit-scrollbar { width: 0; }
