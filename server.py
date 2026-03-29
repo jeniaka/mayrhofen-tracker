@@ -228,11 +228,28 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/resort/all":
-            self.json_ok({
-                "slopes": _load_slopes(),
-                "lifts":  _load_lifts(),
-                "pois":   _load_pois(),
-            })
+            sector = qs.get("sector", [None])[0]
+            slopes = _load_slopes()
+            lifts  = _load_lifts()
+            pois   = _load_pois()
+            if sector:
+                slopes = [s for s in slopes if s.get("sector") == sector]
+                lifts  = [l for l in lifts  if l.get("sector") == sector]
+                pois   = [p for p in pois   if p.get("sector") == sector]
+            self.json_ok({"slopes": slopes, "lifts": lifts, "pois": pois})
+            return
+
+        # Seed endpoint (protected by SEED_SECRET env var or any-auth fallback)
+        if path == "/api/seed":
+            user = self.get_session()
+            seed_secret = os.environ.get("SEED_SECRET", "")
+            provided = qs.get("secret", [""])[0]
+            if not user and not (seed_secret and provided == seed_secret):
+                self.error(401, "Unauthorized — login or provide ?secret=SEED_SECRET")
+                return
+            force = qs.get("force", ["0"])[0] == "1"
+            result = _run_seed(force=force)
+            self.json_ok(result)
             return
 
         # Weather (proxy to Open-Meteo)
@@ -371,6 +388,25 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Allow", "GET, POST, DELETE, OPTIONS")
         self.end_headers()
 
+
+# ── Seed ─────────────────────────────────────────────────────────────────────
+def _run_seed(force=False):
+    result = {}
+    for col, fname in [("slopes","slopes.json"),("lifts","lifts.json"),("pois","pois.json")]:
+        try:
+            data = _load_json_file(fname)
+            if force and _db.db is not None:
+                _db.db[col].drop()
+            existing = _db.find_many(col)
+            if existing and not force:
+                result[col] = f"skipped ({len(existing)} already)"
+                continue
+            for doc in data:
+                _db.insert_one(col, doc)
+            result[col] = f"seeded {len(data)} docs"
+        except Exception as e:
+            result[col] = f"error: {e}"
+    return result
 
 # ── Resort data loaders ──────────────────────────────────────────────────────
 def _load_json_file(name):

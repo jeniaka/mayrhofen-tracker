@@ -6,9 +6,10 @@ let _trailLayer = null;
 let _autoPan = true;
 let _miniMap = null;
 
-const RESORT_BOUNDS = [[47.12, 11.80], [47.20, 11.92]];
+const RESORT_BOUNDS = [[47.06, 11.62], [47.20, 11.93]];  // expanded to include Hintertux
 const RESORT_CENTER = [47.1692, 11.8651];
 const RESORT_ZOOM   = 13;
+const HINTERTUX_CENTER = [47.0880, 11.6580];
 
 // Difficulty colors
 const DIFF_COLOR = { blue: '#2196F3', red: '#F44336', black: '#90A4AE' };
@@ -22,7 +23,7 @@ window.initMap = function() {
     center: RESORT_CENTER,
     zoom:   RESORT_ZOOM,
     zoomControl: false,
-    maxBounds: [[47.08, 11.75], [47.24, 11.98]],
+    maxBounds: [[47.04, 11.60], [47.24, 11.98]],
     maxBoundsViscosity: 0.85,
     attributionControl: false,
   });
@@ -61,6 +62,7 @@ window.initMap = function() {
   // Controls
   document.getElementById('btn-locate').addEventListener('click', _locateMe);
   document.getElementById('btn-autopan').addEventListener('click', _toggleAutoPan);
+  document.getElementById('btn-hintertux')?.addEventListener('click', _toggleHintertux);
 
   // Init mini map for tracking tab
   _initMiniMap();
@@ -71,6 +73,7 @@ function _drawSlopes() {
   if (!_map) return;
   state.slopes.forEach(slope => {
     if (!slope.coordinates || slope.coordinates.length < 2) return;
+    if (slope.sector === 'hintertux') return; // drawn on toggle
     const color = DIFF_COLOR[slope.difficulty] || '#888';
     const line = L.polyline(slope.coordinates, {
       color,
@@ -105,6 +108,7 @@ function _drawLifts() {
   if (!_map) return;
   state.lifts.forEach(lift => {
     if (!lift.bottom || !lift.top) return;
+    if (lift.sector === 'hintertux') return; // drawn on toggle
     const line = L.polyline([lift.bottom, lift.top], {
       color: '#00BCD4',
       weight: 2,
@@ -158,6 +162,7 @@ function _drawPOIs() {
   if (!_map) return;
   state.pois.forEach(poi => {
     if (!poi.lat || !poi.lng) return;
+    if (poi.sector === 'hintertux') return; // drawn on toggle
     const icon = L.divIcon({
       className: '',
       html: _poiIconHtml(poi.type),
@@ -176,6 +181,11 @@ function _poiIconHtml(type) {
     school:     '&#x1F3EB;',
     park:       '&#x1F3BF;',
     medical:    '&#x1F691;',
+    kids:       '&#x1F476;',
+    photopoint: '&#x1F4F8;',
+    attraction: '&#x2B50;',
+    viewpoint:  '&#x1F3D4;',
+    hiking:     '&#x1F6B6;',
   };
   const bg = {
     restaurant: '#FF5722',
@@ -183,6 +193,11 @@ function _poiIconHtml(type) {
     school:     '#3F51B5',
     park:       '#4CAF50',
     medical:    '#F44336',
+    kids:       '#FF9800',
+    photopoint: '#E91E63',
+    attraction: '#FFC107',
+    viewpoint:  '#607D8B',
+    hiking:     '#795548',
   };
   const bgColor = bg[type] || '#607D8B';
   return `<div style="width:28px;height:28px;border-radius:50%;background:${bgColor};
@@ -274,6 +289,47 @@ function _toggleAutoPan() {
   _autoPan = !_autoPan;
   const btn = document.getElementById('btn-autopan');
   if (btn) btn.classList.toggle('active', _autoPan);
+}
+
+// ── Hintertux glacier toggle ───────────────────────────────────────────────────
+let _hintertuxVisible = false;
+let _hintertuxLayers  = [];
+
+function _toggleHintertux() {
+  _hintertuxVisible = !_hintertuxVisible;
+  const btn = document.getElementById('btn-hintertux');
+  if (btn) btn.classList.toggle('active', _hintertuxVisible);
+
+  if (_hintertuxVisible) {
+    // Draw Hintertux slopes/lifts if not already drawn
+    if (_hintertuxLayers.length === 0) {
+      const htSlopes = state.slopes.filter(s => s.sector === 'hintertux');
+      const htLifts  = state.lifts.filter(l => l.sector === 'hintertux');
+      htSlopes.forEach(slope => {
+        if (!slope.coordinates) return;
+        const color = DIFF_COLOR[slope.difficulty] || '#888';
+        const line = L.polyline(slope.coordinates, { color, weight: 3, opacity: 0.85 }).addTo(_map);
+        line.bindPopup(_slopePopup(slope));
+        _hintertuxLayers.push(line);
+      });
+      htLifts.forEach(lift => {
+        if (!lift.bottom || !lift.top) return;
+        const line = L.polyline([lift.bottom, lift.top], {
+          color: '#00BCD4', weight: 2, dashArray: '6 4', opacity: 0.7,
+        }).addTo(_map);
+        line.bindPopup(_liftPopup(lift));
+        _hintertuxLayers.push(line);
+      });
+    } else {
+      _hintertuxLayers.forEach(l => l.addTo(_map));
+    }
+    _map.flyTo(HINTERTUX_CENTER, 13, { animate: true, duration: 1.5 });
+    if (btn) btn.title = 'Back to Mayrhofen';
+  } else {
+    _hintertuxLayers.forEach(l => _map.removeLayer(l));
+    _map.flyTo(RESORT_CENTER, RESORT_ZOOM, { animate: true, duration: 1.5 });
+    if (btn) btn.title = 'Hintertux Glacier';
+  }
 }
 
 // ── Mini map ──────────────────────────────────────────────────────────────────
