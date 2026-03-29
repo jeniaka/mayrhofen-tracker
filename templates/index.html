@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0D1B2A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MayrhofenTracker">
+  <meta name="description" content="Your Mountain. Your Runs. Tracked.">
+  <title>MayrhofenTracker</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <link rel="icon" href="/static/icons/favicon.ico">
+
+  <!-- Language flash fix -->
+  <script>
+    (function(){
+      var lang = localStorage.getItem('mt_lang') || 'en';
+      document.documentElement.setAttribute('lang', lang);
+    })();
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/map.css">
+  <link rel="stylesheet" href="/static/css/stats.css">
+
+  <!-- Inject server-side user data -->
+  <script>
+    window.__USER__ = {{USER_JSON}};
+    window.__LOGGED_IN__ = {{LOGGED_IN}};
+  </script>
+</head>
+<body>
+
+<!-- ── Login Screen ────────────────────────────────────────────────────── -->
+<div id="login-screen" class="login-screen" style="display:none">
+  <div class="login-content">
+    <div class="login-logo">
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M40 8L72 64H8L40 8Z" fill="#00BCD4" opacity="0.15" stroke="#00BCD4" stroke-width="2"/>
+        <path d="M40 20L62 56H18L40 20Z" fill="#00BCD4" opacity="0.25"/>
+        <circle cx="40" cy="54" r="6" fill="#00BCD4"/>
+        <path d="M28 44 L40 20 L52 44" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1 class="login-title">MayrhofenTracker</h1>
+    <p class="login-tagline">Your Mountain. Your Runs. Tracked.</p>
+    <div class="login-divider"></div>
+    <a href="/auth/login" class="btn-google-login">
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continue with Google
+    </a>
+    <p class="login-note">Track your runs, speed, and vertical on Mayrhofen's slopes</p>
+  </div>
+</div>
+
+<!-- ── Main App ────────────────────────────────────────────────────────── -->
+<div id="app" style="display:none">
+
+  <!-- Tab: Map (full screen) -->
+  <div id="tab-map" class="tab-content active">
+    <div id="map-container">
+      <div id="map"></div>
+      <!-- Map controls overlay -->
+      <div class="map-top-bar">
+        <div class="map-title-pill">Mayrhofen</div>
+        <button id="btn-locate" class="map-fab" title="My location" aria-label="Find my location">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+          </svg>
+        </button>
+        <button id="btn-autopan" class="map-fab" title="Auto-follow" aria-label="Toggle auto-follow">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Legend -->
+      <div class="map-legend">
+        <span class="legend-item blue">Blue</span>
+        <span class="legend-item red">Red</span>
+        <span class="legend-item black">Black</span>
+        <span class="legend-item lift">Lift</span>
+      </div>
+      <!-- Quick tracking FAB -->
+      <button id="btn-quick-track" class="fab-track">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab: Home -->
+  <div id="tab-home" class="tab-content">
+    <div class="screen-scroll">
+      <div class="screen-header">
+        <h2>Good morning!</h2>
+        <p class="screen-sub" id="home-greeting">Ready to shred?</p>
+      </div>
+      <!-- Weather widget -->
+      <div class="card" id="weather-card">
+        <div class="card-header">
+          <span class="card-icon">&#x26C5;</span>
+          <span class="card-title">Mountain Weather</span>
+        </div>
+        <div id="weather-content" class="weather-loading">Loading weather...</div>
+      </div>
+      <!-- Today's session -->
+      <div class="card" id="today-card">
+        <div class="card-header">
+          <span class="card-icon">&#x26F7;</span>
+          <span class="card-title">Today's Session</span>
+        </div>
+        <div id="today-content">
+          <p class="muted">No active session. Start tracking on the Tracking tab!</p>
+        </div>
+      </div>
+      <!-- Suggested tours -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F5FA;</span>
+          <span class="card-title">Suggested Tours</span>
+        </div>
+        <div class="tours-list" id="tours-list"></div>
+      </div>
+      <!-- Resort status -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F3D4;</span>
+          <span class="card-title">Resort Status</span>
+        </div>
+        <div id="resort-status-summary">
+          <div class="status-row">
+            <span class="status-dot open"></span>
+            <span id="open-count">—</span> slopes open
+          </div>
+          <div class="status-row">
+            <span class="status-dot lift"></span>
+            <span id="lift-count">—</span> lifts running
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Tracking -->
+  <div id="tab-tracking" class="tab-content">
+    <div class="screen-scroll">
+      <div class="screen-header">
+        <h2>Tracking</h2>
+        <p class="screen-sub">Record your runs</p>
+      </div>
+
+      <div class="tracking-hero">
+        <button id="btn-start-stop" class="btn-track-big start">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <span>Start Tracking</span>
+        </button>
+        <p class="track-state-label" id="track-state-label">Ready</p>
+      </div>
+
+      <div class="live-stats-grid" id="live-stats">
+        <div class="stat-tile">
+          <span class="stat-val" id="live-speed">0.0</span>
+          <span class="stat-lbl">km/h</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-val" id="live-altitude">—</span>
+          <span class="stat-lbl">m alt</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-val" id="live-distance">0.0</span>
+          <span class="stat-lbl">km</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-val" id="live-vertical">0</span>
+          <span class="stat-lbl">m vert</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-val" id="live-duration">0:00</span>
+          <span class="stat-lbl">time</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-val" id="live-runs">0</span>
+          <span class="stat-lbl">runs</span>
+        </div>
+      </div>
+
+      <!-- Mini map preview -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F4CD;</span>
+          <span class="card-title">GPS Trail</span>
+        </div>
+        <div id="mini-map" style="height:200px;border-radius:8px;overflow:hidden"></div>
+      </div>
+
+      <!-- Detected slopes -->
+      <div class="card" id="detected-slopes-card">
+        <div class="card-header">
+          <span class="card-icon">&#x26F7;</span>
+          <span class="card-title">Detected Slopes</span>
+        </div>
+        <div id="detected-slopes-list"><p class="muted">No slopes detected yet.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Stats -->
+  <div id="tab-stats" class="tab-content">
+    <div class="screen-scroll">
+      <div class="screen-header">
+        <h2>My Statistics</h2>
+        <p class="screen-sub">Today's performance</p>
+      </div>
+
+      <!-- Main stats card -->
+      <div class="card stats-card">
+        <div class="stats-grid">
+          <div class="stat-block">
+            <div class="stat-big" id="stat-time">0:00</div>
+            <div class="stat-desc">Time on slopes</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-big" id="stat-dist">0.0 km</div>
+            <div class="stat-desc">Distance</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-big" id="stat-runs">0</div>
+            <div class="stat-desc">Runs</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-big" id="stat-maxalt">— m</div>
+            <div class="stat-desc">Max altitude</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-big" id="stat-vert">0 m</div>
+            <div class="stat-desc">Neg. elevation</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-big" id="stat-maxspeed">0 km/h</div>
+            <div class="stat-desc">Max speed</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-big" id="stat-avgspeed">0 km/h</div>
+            <div class="stat-desc">Avg speed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Identified slopes -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x26F7;</span>
+          <span class="card-title">Identified Slopes</span>
+        </div>
+        <div id="slopes-summary-bar"></div>
+        <div id="slopes-list"><p class="muted">No slopes identified yet.</p></div>
+      </div>
+
+      <!-- Badges -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F3C6;</span>
+          <span class="card-title">Badges</span>
+        </div>
+        <div class="badges-grid" id="badges-grid"></div>
+      </div>
+
+      <!-- Session history -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F4C5;</span>
+          <span class="card-title">Session History</span>
+        </div>
+        <div id="sessions-list"><p class="muted">No sessions yet.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Profile -->
+  <div id="tab-profile" class="tab-content">
+    <div class="screen-scroll">
+      <div class="screen-header">
+        <h2>Profile</h2>
+      </div>
+      <div class="card profile-card">
+        <img id="profile-pic" src="" alt="Profile" class="profile-avatar">
+        <div class="profile-info">
+          <div class="profile-name" id="profile-name">—</div>
+          <div class="profile-email" id="profile-email">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F4CA;</span>
+          <span class="card-title">Season Totals</span>
+        </div>
+        <div id="season-stats-content"><p class="muted">Loading...</p></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">&#x2699;&#xFE0F;</span>
+          <span class="card-title">Settings</span>
+        </div>
+        <div class="settings-list">
+          <div class="setting-row">
+            <span>Language</span>
+            <select id="lang-select" class="setting-select">
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+              <option value="he">עברית</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <span>Units</span>
+            <select id="units-select" class="setting-select">
+              <option value="metric">Metric (km/h, m)</option>
+              <option value="imperial">Imperial (mph, ft)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <a href="/auth/logout" class="btn-logout">Sign Out</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bottom Nav ──────────────────────────────────────────────────────── -->
+  <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <button class="nav-tab" data-tab="home" aria-label="Home">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-tab active" data-tab="map" aria-label="Map">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+      </svg>
+      <span>Map</span>
+    </button>
+    <button class="nav-tab" data-tab="tracking" aria-label="Tracking">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+      <span>Track</span>
+    </button>
+    <button class="nav-tab" data-tab="stats" aria-label="Stats">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+      </svg>
+      <span>Stats</span>
+    </button>
+    <button class="nav-tab" data-tab="profile" aria-label="Profile">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+</div><!-- #app -->
+
+<!-- App JS -->
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/map.js"></script>
+<script src="/static/js/tracking.js"></script>
+<script src="/static/js/stats.js"></script>
+<script src="/static/js/weather.js"></script>
+
+</body>
+</html>

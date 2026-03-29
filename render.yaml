@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: mayrhofen-tracker
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: APP_DOMAIN
+        sync: false

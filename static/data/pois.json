@@ -1,0 +1,102 @@
+[
+  {
+    "id": "p01",
+    "name": "Panorama Restaurant",
+    "type": "restaurant",
+    "sector": "penken",
+    "lat": 47.1585,
+    "lng": 11.8455,
+    "description": "Mountain restaurant with stunning panoramic views. Hot food, drinks, sun terrace.",
+    "hours": "9:00–16:30"
+  },
+  {
+    "id": "p02",
+    "name": "Gschösswandhaus",
+    "type": "restaurant",
+    "sector": "penken",
+    "lat": 47.1620,
+    "lng": 11.8470,
+    "description": "Traditional alpine hut serving Tyrolean specialties.",
+    "hours": "9:30–16:00"
+  },
+  {
+    "id": "p03",
+    "name": "Schneekarhütte",
+    "type": "restaurant",
+    "sector": "horberg",
+    "lat": 47.1605,
+    "lng": 11.8355,
+    "description": "Cozy mountain hut in the Horberg area with homemade food.",
+    "hours": "9:00–16:00"
+  },
+  {
+    "id": "p04",
+    "name": "Vogelnest",
+    "type": "restaurant",
+    "sector": "rastkogel",
+    "lat": 47.1470,
+    "lng": 11.8210,
+    "description": "Scenic hut near Rastkogel/Eggalm boundary.",
+    "hours": "9:30–15:30"
+  },
+  {
+    "id": "p05",
+    "name": "Ticket Office — Penken",
+    "type": "ticket",
+    "sector": "penken",
+    "lat": 47.1682,
+    "lng": 11.8618,
+    "description": "Ski pass purchase and rentals at Penkenbahn base.",
+    "hours": "8:00–16:30"
+  },
+  {
+    "id": "p06",
+    "name": "Ticket Office — Ahorn",
+    "type": "ticket",
+    "sector": "ahorn",
+    "lat": 47.1652,
+    "lng": 11.8678,
+    "description": "Ski pass purchase at Ahornbahn base.",
+    "hours": "8:00–16:30"
+  },
+  {
+    "id": "p07",
+    "name": "Ski School Mayrhofen",
+    "type": "school",
+    "sector": "penken",
+    "lat": 47.1678,
+    "lng": 11.8615,
+    "description": "Professional ski and snowboard instruction for all levels.",
+    "hours": "8:30–17:00"
+  },
+  {
+    "id": "p08",
+    "name": "PenkenPark",
+    "type": "park",
+    "sector": "penken",
+    "lat": 47.1588,
+    "lng": 11.8438,
+    "description": "Freestyle terrain park with jumps, rails, and halfpipe.",
+    "hours": "8:00–16:00"
+  },
+  {
+    "id": "p09",
+    "name": "First Aid Penken",
+    "type": "medical",
+    "sector": "penken",
+    "lat": 47.1583,
+    "lng": 11.8452,
+    "description": "Mountain rescue and first aid station.",
+    "hours": "8:00–16:30"
+  },
+  {
+    "id": "p10",
+    "name": "Ahorn Summit Restaurant",
+    "type": "restaurant",
+    "sector": "ahorn",
+    "lat": 47.1522,
+    "lng": 11.8752,
+    "description": "Summit restaurant with 360° panorama views at 2,000m.",
+    "hours": "9:00–15:30"
+  }
+]

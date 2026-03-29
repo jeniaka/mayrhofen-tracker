@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.local
+data/*.json
+data/sessions/
+*.egg-info/
+dist/
+build/
+.DS_Store
+Thumbs.db
+venv/
+.venv/
+node_modules/
+gen_icons.py

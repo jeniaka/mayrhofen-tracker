@@ -1,0 +1,122 @@
+[
+  {
+    "id": "l01",
+    "name": "3S Penkenbahn",
+    "type": "gondola",
+    "sector": "penken",
+    "capacity_per_hour": 2400,
+    "status": "open",
+    "bottom": [47.1680, 11.8620],
+    "top": [47.1580, 11.8450]
+  },
+  {
+    "id": "l02",
+    "name": "Ahornbahn",
+    "type": "gondola",
+    "sector": "ahorn",
+    "capacity_per_hour": 2000,
+    "status": "open",
+    "bottom": [47.1650, 11.8680],
+    "top": [47.1520, 11.8750]
+  },
+  {
+    "id": "l03",
+    "name": "Horbergbahn",
+    "type": "gondola",
+    "sector": "horberg",
+    "capacity_per_hour": 1800,
+    "status": "open",
+    "bottom": [47.1685, 11.8420],
+    "top": [47.1598, 11.8340]
+  },
+  {
+    "id": "l04",
+    "name": "Finkenberger Almbahn",
+    "type": "gondola",
+    "sector": "finkenberg",
+    "capacity_per_hour": 1600,
+    "status": "open",
+    "bottom": [47.1620, 11.8310],
+    "top": [47.1550, 11.8300]
+  },
+  {
+    "id": "l05",
+    "name": "Rastkogelbahn",
+    "type": "gondola",
+    "sector": "rastkogel",
+    "capacity_per_hour": 1500,
+    "status": "open",
+    "bottom": [47.1552, 11.8300],
+    "top": [47.1450, 11.8200]
+  },
+  {
+    "id": "l06",
+    "name": "Eggalmbahn",
+    "type": "gondola",
+    "sector": "eggalm",
+    "capacity_per_hour": 1500,
+    "status": "open",
+    "bottom": [47.1480, 11.8210],
+    "top": [47.1380, 11.8100]
+  },
+  {
+    "id": "l07",
+    "name": "Penken Express",
+    "type": "chairlift",
+    "sector": "penken",
+    "capacity_per_hour": 2200,
+    "status": "open",
+    "bottom": [47.1620, 11.8472],
+    "top": [47.1572, 11.8440]
+  },
+  {
+    "id": "l08",
+    "name": "Schneekar Bahn",
+    "type": "chairlift",
+    "sector": "horberg",
+    "capacity_per_hour": 1800,
+    "status": "open",
+    "bottom": [47.1665, 11.8393],
+    "top": [47.1598, 11.8340]
+  },
+  {
+    "id": "l09",
+    "name": "Penken Park Lift",
+    "type": "tbar",
+    "sector": "penken",
+    "capacity_per_hour": 900,
+    "status": "open",
+    "bottom": [47.1615, 11.8455],
+    "top": [47.1590, 11.8440]
+  },
+  {
+    "id": "l10",
+    "name": "Ahorn Kinderparadies",
+    "type": "carpet",
+    "sector": "ahorn",
+    "capacity_per_hour": 600,
+    "status": "open",
+    "bottom": [47.1528, 11.8760],
+    "top": [47.1522, 11.8755]
+  },
+  {
+    "id": "l11",
+    "name": "Unterbergalm Chairlift",
+    "type": "chairlift",
+    "sector": "penken",
+    "capacity_per_hour": 2000,
+    "status": "open",
+    "bottom": [47.1628, 11.8525],
+    "top": [47.1583, 11.8458]
+  },
+  {
+    "id": "l12",
+    "name": "Harakiri Express",
+    "type": "chairlift",
+    "sector": "penken",
+    "capacity_per_hour": 1800,
+    "status": "open",
+    "bottom": [47.1620, 11.8472],
+    "top": [47.1568, 11.8440]
+  }
+]
