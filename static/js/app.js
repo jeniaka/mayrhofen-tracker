@@ -75,20 +75,70 @@ document.addEventListener('DOMContentLoaded', () => {
 function _initProfile() {
   const u = window.__USER__;
   if (!u) return;
-  document.getElementById('profile-name').textContent  = u.name || u.email;
-  document.getElementById('profile-email').textContent = u.email || '';
-  const pic = document.getElementById('profile-pic');
+
+  const name  = u.name  || u.email || 'User';
+  const email = u.email || '';
+  const first = name.split(' ')[0];
+
+  document.getElementById('profile-name').textContent  = name;
+  document.getElementById('profile-email').textContent = email;
+
+  const pic      = document.getElementById('profile-pic');
+  const fallback = document.getElementById('profile-avatar-fallback');
   if (u.picture) {
     pic.src = u.picture;
+    pic.style.display = 'block';
+    if (fallback) fallback.style.display = 'none';
   } else {
     pic.style.display = 'none';
+    if (fallback) fallback.textContent = first[0].toUpperCase();
   }
 
   // Greet
-  const hour = new Date().getHours();
+  const hour  = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('home-greeting').textContent =
-    `${greet}, ${(u.name || u.email).split(' ')[0]}! Ready to shred?`;
+  document.getElementById('home-greeting').textContent = `${greet}, ${first}! Ready to shred?`;
+}
+
+// Called when profile tab is shown — loads prefs + stats from API
+async function _loadProfilePage() {
+  try {
+    const [profRes, statsRes] = await Promise.all([
+      fetch('/api/user/profile'),
+      fetch('/api/user/stats'),
+    ]);
+    if (profRes.ok) {
+      const prof  = await profRes.json();
+      const prefs = prof.preferences || {};
+      // Apply prefs to selects
+      const unitsEl   = document.getElementById('units-select');
+      const mapEl     = document.getElementById('map-view-select');
+      const langEl    = document.getElementById('lang-select');
+      if (unitsEl && prefs.units)    unitsEl.value   = prefs.units;
+      if (mapEl   && prefs.mapView)  mapEl.value     = prefs.mapView;
+      if (langEl  && prefs.language) langEl.value    = prefs.language;
+      // Mirror to state
+      if (prefs.units)    state.units = prefs.units;
+      if (prefs.language) state.lang  = prefs.language;
+    }
+    if (statsRes.ok) {
+      const s = await statsRes.json();
+      _setText('pstat-days', s.total_days    ?? 0);
+      _setText('pstat-dist', (s.total_distance_km ?? 0).toFixed(1));
+      _setText('pstat-vert', Math.round(s.total_vertical_m ?? 0));
+      _setText('pstat-runs', s.total_runs    ?? 0);
+    }
+  } catch (e) {
+    console.warn('[profile] load error', e);
+  }
+}
+
+function _savePreference(key, value) {
+  fetch('/api/user/preferences', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ [key]: value }),
+  }).catch(e => console.warn('[prefs] save error', e));
 }
 
 // ── Bottom nav tabs ───────────────────────────────────────────────────────────
@@ -125,7 +175,7 @@ function switchTab(tab) {
     _refreshStats();
   }
   if (tab === 'profile') {
-    _loadSeasonStats();
+    _loadProfilePage();
   }
 }
 
@@ -193,12 +243,15 @@ function _renderTours() {
 function _initSettings() {
   const langSel  = document.getElementById('lang-select');
   const unitsSel = document.getElementById('units-select');
+  const mapSel   = document.getElementById('map-view-select');
+
   if (langSel) {
     langSel.value = state.lang;
     langSel.addEventListener('change', () => {
       state.lang = langSel.value;
       localStorage.setItem('mt_lang', state.lang);
       document.documentElement.setAttribute('lang', state.lang);
+      _savePreference('language', state.lang);
     });
   }
   if (unitsSel) {
@@ -206,7 +259,39 @@ function _initSettings() {
     unitsSel.addEventListener('change', () => {
       state.units = unitsSel.value;
       localStorage.setItem('mt_units', state.units);
+      _savePreference('units', state.units);
     });
+  }
+  if (mapSel) {
+    mapSel.addEventListener('change', () => {
+      _savePreference('mapView', mapSel.value);
+    });
+  }
+
+  // Danger zone
+  const btnLogout = document.getElementById('btn-logout');
+  const btnDelete = document.getElementById('btn-delete-data');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      window.location.href = '/auth/logout';
+    });
+  }
+  if (btnDelete) {
+    btnDelete.addEventListener('click', _deleteMyData);
+  }
+}
+
+async function _deleteMyData() {
+  if (!confirm('Delete ALL your ski sessions and stats? This cannot be undone!')) return;
+  if (!confirm('Last chance — really delete everything?')) return;
+  try {
+    const res = await fetch('/api/user/data', { method: 'DELETE' });
+    if (res.ok) {
+      alert('All your data has been deleted.');
+      window.location.href = '/auth/logout';
+    }
+  } catch (e) {
+    alert('Error deleting data. Please try again.');
   }
 }
 

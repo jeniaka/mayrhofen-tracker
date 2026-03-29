@@ -106,3 +106,25 @@ def delete_one(collection, query):
             else:
                 new_docs.append(doc)
         _save_local(collection, new_docs)
+
+def delete_many(collection, query):
+    if db is not None:
+        db[collection].delete_many(query)
+        return
+    with _db_lock:
+        docs = _load_local(collection)
+        new_docs = [d for d in docs if not all(d.get(k) == v for k, v in query.items())]
+        _save_local(collection, new_docs)
+
+def get_user_preferences(user_id):
+    doc = find_one("user_preferences", {"user_id": user_id})
+    if not doc:
+        return {"units": "metric", "mapView": "satellite", "language": "en"}
+    return {k: v for k, v in doc.items() if k != "user_id"}
+
+def save_user_preferences(user_id, prefs):
+    upsert_one("user_preferences", {"user_id": user_id}, {"user_id": user_id, **prefs})
+
+def delete_user_data(user_id):
+    delete_many("sessions", {"user_id": user_id})
+    delete_one("user_preferences", {"user_id": user_id})

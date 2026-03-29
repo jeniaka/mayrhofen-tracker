@@ -321,23 +321,32 @@
   <!-- Tab: Profile -->
   <div id="tab-profile" class="tab-content">
     <div class="screen-scroll">
-      <div class="screen-header">
-        <h2>Profile</h2>
-      </div>
-      <div class="card profile-card">
-        <img id="profile-pic" src="" alt="Profile" class="profile-avatar">
-        <div class="profile-info">
-          <div class="profile-name" id="profile-name">—</div>
-          <div class="profile-email" id="profile-email">—</div>
+
+      <!-- Profile hero -->
+      <div class="profile-hero">
+        <div class="profile-avatar-wrap">
+          <img id="profile-pic" src="" alt="Profile" class="profile-avatar-img">
+          <div id="profile-avatar-fallback" class="profile-avatar-fallback">?</div>
         </div>
+        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-email" id="profile-email">—</div>
       </div>
+
+      <!-- Season stats -->
       <div class="card">
         <div class="card-header">
-          <span class="card-icon">&#x1F4CA;</span>
-          <span class="card-title">Season Totals</span>
+          <span class="card-icon">&#x26F7;</span>
+          <span class="card-title">Season Stats</span>
         </div>
-        <div id="season-stats-content"><p class="muted">Loading...</p></div>
+        <div class="profile-stats-grid" id="season-stats-content">
+          <div class="pstat"><span class="pstat-val" id="pstat-days">—</span><span class="pstat-lbl">Ski Days</span></div>
+          <div class="pstat"><span class="pstat-val" id="pstat-dist">—</span><span class="pstat-lbl">km Total</span></div>
+          <div class="pstat"><span class="pstat-val" id="pstat-vert">—</span><span class="pstat-lbl">m Vertical</span></div>
+          <div class="pstat"><span class="pstat-val" id="pstat-runs">—</span><span class="pstat-lbl">Runs</span></div>
+        </div>
       </div>
+
+      <!-- Settings -->
       <div class="card">
         <div class="card-header">
           <span class="card-icon">&#x2699;&#xFE0F;</span>
@@ -345,25 +354,42 @@
         </div>
         <div class="settings-list">
           <div class="setting-row">
+            <span>Units</span>
+            <select id="units-select" class="setting-select">
+              <option value="metric">Metric (km/h, °C)</option>
+              <option value="imperial">Imperial (mph, °F)</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <span>Default Map</span>
+            <select id="map-view-select" class="setting-select">
+              <option value="satellite">Satellite</option>
+              <option value="terrain">Terrain</option>
+            </select>
+          </div>
+          <div class="setting-row">
             <span>Language</span>
             <select id="lang-select" class="setting-select">
               <option value="en">English</option>
               <option value="de">Deutsch</option>
-              <option value="he">עברית</option>
-            </select>
-          </div>
-          <div class="setting-row">
-            <span>Units</span>
-            <select id="units-select" class="setting-select">
-              <option value="metric">Metric (km/h, m)</option>
-              <option value="imperial">Imperial (mph, ft)</option>
+              <option value="he">&#x05E2;&#x05D1;&#x05E8;&#x05D9;&#x05EA;</option>
             </select>
           </div>
         </div>
       </div>
-      <div class="card">
-        <a href="/auth/logout" class="btn-logout">Sign Out</a>
+
+      <!-- Account / Danger Zone -->
+      <div class="card danger-zone-card">
+        <div class="card-header">
+          <span class="card-icon">&#x1F6AA;</span>
+          <span class="card-title">Account</span>
+        </div>
+        <div class="danger-zone-btns">
+          <button class="btn-logout-big" id="btn-logout">Log Out</button>
+          <button class="btn-delete-data" id="btn-delete-data">Delete All My Data</button>
+        </div>
       </div>
+
     </div>
   </div>
 

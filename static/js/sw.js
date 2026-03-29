@@ -1,5 +1,5 @@
 /* ── MayrhofenTracker Service Worker ─────────────────────────────────────────── */
-const CACHE_NAME = 'mt-v2';
+const CACHE_NAME = 'mt-v3';
 const STATIC_CACHE = [
   '/home',
   '/static/css/main.css',

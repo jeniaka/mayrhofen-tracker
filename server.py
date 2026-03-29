@@ -298,6 +298,38 @@ class Handler(BaseHTTPRequestHandler):
             self.json_ok(stats)
             return
 
+        # User profile (info + preferences)
+        if path == "/api/user/profile":
+            user = self.get_session()
+            if not user:
+                self.error(401, "Unauthorized")
+                return
+            prefs = _db.get_user_preferences(user["id"])
+            self.json_ok({
+                "id":      user["id"],
+                "name":    user.get("name", ""),
+                "email":   user.get("email", ""),
+                "picture": user.get("picture", ""),
+                "preferences": prefs,
+            })
+            return
+
+        # User stats (season aggregation)
+        if path == "/api/user/stats":
+            user = self.get_session()
+            if not user:
+                self.error(401, "Unauthorized")
+                return
+            s = _compute_season_stats(user["id"])
+            self.json_ok({
+                "total_days":        s.get("days", 0),
+                "total_distance_km": round(s.get("distance_m", 0) / 1000, 1),
+                "total_vertical_m":  s.get("total_vertical_m", 0),
+                "total_runs":        s.get("runs", 0),
+                "max_speed_kmh":     s.get("max_speed_kmh", 0),
+            })
+            return
+
         # Admin — update slope status
         m = re.match(r"^/api/admin/slopes/([a-z0-9]+)/status$", path)
         if m:
@@ -361,6 +393,22 @@ class Handler(BaseHTTPRequestHandler):
 
         self.error(404, "Not found")
 
+    def do_PUT(self):
+        parsed = urlparse(self.path)
+        path   = parsed.path
+        user   = self.get_session()
+
+        if path == "/api/user/preferences":
+            if not user:
+                self.error(401, "Unauthorized")
+                return
+            prefs = self.read_json()
+            _db.save_user_preferences(user["id"], prefs)
+            self.json_ok({"ok": True})
+            return
+
+        self.error(404, "Not found")
+
     def do_DELETE(self):
         parsed = urlparse(self.path)
         path   = parsed.path
@@ -375,11 +423,19 @@ class Handler(BaseHTTPRequestHandler):
             self.json_ok({"ok": True})
             return
 
+        if path == "/api/user/data":
+            if not user:
+                self.error(401, "Unauthorized")
+                return
+            _db.delete_user_data(user["id"])
+            self.json_ok({"ok": True, "message": "All data deleted"})
+            return
+
         self.error(404, "Not found")
 
     def do_OPTIONS(self):
         self.send_response(204)
-        self.send_header("Allow", "GET, POST, DELETE, OPTIONS")
+        self.send_header("Allow", "GET, POST, PUT, DELETE, OPTIONS")
         self.end_headers()
 
 
