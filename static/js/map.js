@@ -6,13 +6,12 @@ let _trailLayer = null;
 let _autoPan = true;
 let _miniMap = null;
 
-const RESORT_BOUNDS = [[47.06, 11.62], [47.20, 11.93]];  // expanded to include Hintertux
-const RESORT_CENTER = [47.1692, 11.8651];
-const RESORT_ZOOM   = 13;
+const RESORT_CENTER    = [47.1692, 11.8651];
+const RESORT_ZOOM      = 13;
 const HINTERTUX_CENTER = [47.0880, 11.6580];
 
-// Difficulty colors
-const DIFF_COLOR = { blue: '#2196F3', red: '#F44336', black: '#90A4AE' };
+// Difficulty colors (OSM + curated)
+const DIFF_COLOR = { blue: '#2196F3', red: '#F44336', black: '#212121' };
 
 window.initMap = function() {
   if (_map) return;
@@ -28,68 +27,152 @@ window.initMap = function() {
     attributionControl: false,
   });
 
-  // Base tile layers — OSM is default (always works, no API key)
-  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Base tile layers — OSM is default (always works, no API key needed)
+  const osmTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   });
-  const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  const topoTiles = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     maxZoom: 17,
-    attribution: '© OpenTopoMap',
+    attribution: '&copy; OpenTopoMap',
   });
-  const satellite = L.tileLayer(
+  const satTiles = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { maxZoom: 19, attribution: '© Esri' }
+    { maxZoom: 19, attribution: '&copy; Esri' }
   );
 
-  osm.addTo(_map);  // OSM loads reliably everywhere
+  osmTiles.addTo(_map);
 
-  // Layer control (top-right, collapsed)
   L.control.layers(
-    { 'Street Map': osm, 'Topo': topo, 'Satellite': satellite },
+    { 'Street Map': osmTiles, 'Topo': topoTiles, 'Satellite': satTiles },
     {},
     { position: 'topright', collapsed: true }
   ).addTo(_map);
-
-  // Attribution (small)
   L.control.attribution({ position: 'bottomright', prefix: false }).addTo(_map);
-
-  // Zoom controls (top-right)
   L.control.zoom({ position: 'topright' }).addTo(_map);
 
   state.mapInitialized = true;
 
-  // Draw data when ready
-  if (state.resortLoaded) {
-    _drawSlopes();
-    _drawLifts();
-    _drawPOIs();
-  } else {
-    const wait = setInterval(() => {
-      if (state.resortLoaded) {
-        clearInterval(wait);
-        _drawSlopes();
-        _drawLifts();
-        _drawPOIs();
-      }
-    }, 200);
-  }
-
-  // Controls
-  document.getElementById('btn-locate').addEventListener('click', _locateMe);
-  document.getElementById('btn-autopan').addEventListener('click', _toggleAutoPan);
+  // Wire map controls
+  document.getElementById('btn-locate')?.addEventListener('click', _locateMe);
+  document.getElementById('btn-autopan')?.addEventListener('click', _toggleAutoPan);
   document.getElementById('btn-hintertux')?.addEventListener('click', _toggleHintertux);
+
+  // Load OSM real data, draw everything once it arrives
+  _loadAndDraw();
 
   // Init mini map for tracking tab
   _initMiniMap();
 };
 
-// ── Draw slopes ───────────────────────────────────────────────────────────────
+// ── Load OSM data then draw ────────────────────────────────────────────────────
+async function _loadAndDraw() {
+  // Try to fetch real OSM piste data
+  try {
+    const res = await fetch('/api/resort-data');
+    if (res.ok) {
+      const data = await res.json();
+      if ((data.slopes || []).length > 0) {
+        state.osmSlopes = data.slopes;
+        state.osmLifts  = data.lifts  || [];
+        state.osmPOIs   = data.pois   || [];
+        state.useOSM    = true;
+        _drawOSMSlopes();
+        _drawOSMLifts();
+        _drawOSMPOIs();
+        console.log('[map] using OSM data:', state.osmSlopes.length, 'slopes');
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('[map] OSM data unavailable:', e.message);
+  }
+  // Fallback: wait for curated resort data then draw
+  state.useOSM = false;
+  const _waitAndDraw = () => {
+    if (state.resortLoaded) {
+      _drawSlopes(); _drawLifts(); _drawPOIs();
+    } else {
+      const iv = setInterval(() => {
+        if (state.resortLoaded) {
+          clearInterval(iv);
+          _drawSlopes(); _drawLifts(); _drawPOIs();
+        }
+      }, 200);
+    }
+  };
+  _waitAndDraw();
+}
+
+// ── OSM slopes ────────────────────────────────────────────────────────────────
+function _drawOSMSlopes() {
+  if (!_map || !state.osmSlopes) return;
+  state.osmSlopes.forEach(slope => {
+    if (!slope.coordinates || slope.coordinates.length < 2) return;
+    const color = DIFF_COLOR[slope.difficulty] || DIFF_COLOR.red;
+    const line = L.polyline(slope.coordinates, {
+      color,
+      weight: slope.difficulty === 'black' ? 3.5 : 3,
+      opacity: 0.85,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(_map);
+    line.bindPopup(_osmSlopePopup(slope));
+  });
+}
+
+function _osmSlopePopup(slope) {
+  const ref  = slope.number ? `#${slope.number} ` : '';
+  const name = slope.name   || 'Piste';
+  return `<div class="popup-title">${ref}${name}</div>
+    <span class="popup-diff ${slope.difficulty}">${(slope.difficulty||'red').toUpperCase()}</span>
+    <div class="popup-meta">OSM ID: ${slope.osm_id || slope.id}</div>`;
+}
+
+// ── OSM lifts ─────────────────────────────────────────────────────────────────
+function _drawOSMLifts() {
+  if (!_map || !state.osmLifts) return;
+  state.osmLifts.forEach(lift => {
+    if (!lift.coordinates || lift.coordinates.length < 2) return;
+    const line = L.polyline(lift.coordinates, {
+      color:     '#1a1a1a',
+      weight:    3,
+      opacity:   0.8,
+      dashArray: '10, 6',
+      lineCap:   'round',
+    }).addTo(_map);
+    const popup = `<div class="popup-title">${lift.name || 'Lift'}</div>
+      <div class="popup-meta">Type: ${lift.type || '—'}</div>`;
+    line.bindPopup(popup);
+    // Endpoint dots
+    const dot = { radius: 4, color: '#000', fillColor: '#fff', fillOpacity: 1, weight: 2 };
+    L.circleMarker(lift.coordinates[0], dot).addTo(_map).bindPopup(popup);
+    L.circleMarker(lift.coordinates[lift.coordinates.length - 1], dot).addTo(_map).bindPopup(popup);
+  });
+}
+
+// ── OSM POIs ──────────────────────────────────────────────────────────────────
+function _drawOSMPOIs() {
+  if (!_map || !state.osmPOIs) return;
+  state.osmPOIs.forEach(poi => {
+    if (!poi.lat || !poi.lng) return;
+    const icon = L.divIcon({
+      className: '',
+      html: _poiIconHtml(poi.type),
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    L.marker([poi.lat, poi.lng], { icon }).addTo(_map)
+      .bindPopup(_poiPopup(poi));
+  });
+}
+
+// ── Curated slopes (fallback) ─────────────────────────────────────────────────
 function _drawSlopes() {
   if (!_map) return;
   state.slopes.forEach(slope => {
     if (!slope.coordinates || slope.coordinates.length < 2) return;
-    if (slope.sector === 'hintertux') return; // drawn on toggle
+    if (slope.sector === 'hintertux') return;
     const color = DIFF_COLOR[slope.difficulty] || '#888';
     const line = L.polyline(slope.coordinates, {
       color,
@@ -98,9 +181,7 @@ function _drawSlopes() {
       lineCap: 'round',
       lineJoin: 'round',
     }).addTo(_map);
-
     line.bindPopup(_slopePopup(slope));
-    line.on('click', () => line.openPopup());
   });
 }
 
@@ -119,54 +200,39 @@ function _slopePopup(slope) {
     </div>`;
 }
 
-// ── Draw lifts ────────────────────────────────────────────────────────────────
+// ── Curated lifts (fallback) ──────────────────────────────────────────────────
 function _drawLifts() {
   if (!_map) return;
   state.lifts.forEach(lift => {
     if (!lift.bottom || !lift.top) return;
-    if (lift.sector === 'hintertux') return; // drawn on toggle
+    if (lift.sector === 'hintertux') return;
     _drawOneLift(lift, _map);
   });
 }
 
 function _drawOneLift(lift, targetMap) {
   const popup = _liftPopup(lift);
-
-  // Bold black dashed line
   const line = L.polyline([lift.bottom, lift.top], {
-    color:     '#000000',
-    weight:    3,
-    opacity:   0.85,
-    dashArray: '10, 6',
-    lineCap:   'round',
+    color: '#1a1a1a', weight: 3, opacity: 0.85, dashArray: '10, 6', lineCap: 'round',
   }).addTo(targetMap);
   line.bindPopup(popup);
-
-  // Circle markers at base and top
-  const dotStyle = { radius: 5, color: '#000', fillColor: '#fff', fillOpacity: 1, weight: 2 };
-  L.circleMarker(lift.bottom, dotStyle).addTo(targetMap).bindPopup(popup);
-  L.circleMarker(lift.top,    dotStyle).addTo(targetMap).bindPopup(popup);
-
-  // Icon at midpoint — gondolas & cable cars only; small dot for T-bars/carpets
-  const mid = [
-    (lift.bottom[0] + lift.top[0]) / 2,
-    (lift.bottom[1] + lift.top[1]) / 2,
-  ];
+  const dot = { radius: 5, color: '#000', fillColor: '#fff', fillOpacity: 1, weight: 2 };
+  L.circleMarker(lift.bottom, dot).addTo(targetMap).bindPopup(popup);
+  L.circleMarker(lift.top,    dot).addTo(targetMap).bindPopup(popup);
+  const mid = [(lift.bottom[0] + lift.top[0]) / 2, (lift.bottom[1] + lift.top[1]) / 2];
   const iconHtml = _liftIconHtml(lift.type);
   if (iconHtml) {
     const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [22, 22], iconAnchor: [11, 11] });
     L.marker(mid, { icon }).addTo(targetMap).bindPopup(popup);
   }
-
   return [line];
 }
 
 function _liftIconHtml(type) {
-  // Only show emoji icon for gondolas and chairlifts; skip T-bars/carpets
   const icons = { gondola: '🚡', chairlift: '🪑' };
   if (!icons[type]) return null;
   return `<div style="font-size:15px;text-align:center;line-height:22px;
-    text-shadow:0 1px 3px rgba(0,0,0,0.6);filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5))">${icons[type]}</div>`;
+    text-shadow:0 1px 3px rgba(0,0,0,0.6)">${icons[type]}</div>`;
 }
 
 function _liftPopup(lift) {
@@ -182,47 +248,29 @@ function _liftPopup(lift) {
     </div>`;
 }
 
-// ── Draw POIs ─────────────────────────────────────────────────────────────────
+// ── Curated POIs (fallback) ───────────────────────────────────────────────────
 function _drawPOIs() {
   if (!_map) return;
   state.pois.forEach(poi => {
     if (!poi.lat || !poi.lng) return;
-    if (poi.sector === 'hintertux') return; // drawn on toggle
+    if (poi.sector === 'hintertux') return;
     const icon = L.divIcon({
-      className: '',
-      html: _poiIconHtml(poi.type),
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
+      className: '', html: _poiIconHtml(poi.type), iconSize: [28, 28], iconAnchor: [14, 14],
     });
-    L.marker([poi.lat, poi.lng], { icon }).addTo(_map)
-      .bindPopup(_poiPopup(poi));
+    L.marker([poi.lat, poi.lng], { icon }).addTo(_map).bindPopup(_poiPopup(poi));
   });
 }
 
 function _poiIconHtml(type) {
   const icons = {
-    restaurant: '&#x1F374;',
-    ticket:     '&#x1F3AB;',
-    school:     '&#x1F3EB;',
-    park:       '&#x1F3BF;',
-    medical:    '&#x1F691;',
-    kids:       '&#x1F476;',
-    photopoint: '&#x1F4F8;',
-    attraction: '&#x2B50;',
-    viewpoint:  '&#x1F3D4;',
-    hiking:     '&#x1F6B6;',
+    restaurant:'&#x1F374;', ticket:'&#x1F3AB;', school:'&#x1F3EB;', park:'&#x1F3BF;',
+    medical:'&#x1F691;', kids:'&#x1F476;', photopoint:'&#x1F4F8;', attraction:'&#x2B50;',
+    viewpoint:'&#x1F3D4;', hiking:'&#x1F6B6;', hut:'&#x1F3E0;', station:'&#x1F6B3;',
   };
   const bg = {
-    restaurant: '#FF5722',
-    ticket:     '#9C27B0',
-    school:     '#3F51B5',
-    park:       '#4CAF50',
-    medical:    '#F44336',
-    kids:       '#FF9800',
-    photopoint: '#E91E63',
-    attraction: '#FFC107',
-    viewpoint:  '#607D8B',
-    hiking:     '#795548',
+    restaurant:'#FF5722', ticket:'#9C27B0', school:'#3F51B5', park:'#4CAF50',
+    medical:'#F44336', kids:'#FF9800', photopoint:'#E91E63', attraction:'#FFC107',
+    viewpoint:'#607D8B', hiking:'#795548', hut:'#8B4513', station:'#00BCD4',
   };
   const bgColor = bg[type] || '#607D8B';
   return `<div style="width:28px;height:28px;border-radius:50%;background:${bgColor};
@@ -234,86 +282,57 @@ function _poiIconHtml(type) {
 
 function _poiPopup(poi) {
   return `<div class="popup-title">${poi.name}</div>
-    <div class="popup-meta">${poi.description || ''}<br>
-    ${poi.hours ? `Hours: ${poi.hours}` : ''}
+    <div class="popup-meta">${poi.description || ''}
+    ${poi.hours ? `<br>Hours: ${poi.hours}` : ''}
     </div>`;
 }
 
 // ── GPS tracking marker ───────────────────────────────────────────────────────
-window.updateMapGPS = function(lat, lng, heading) {
+window.updateMapGPS = function(lat, lng) {
   if (!_map) return;
   if (!_gpsMarker) {
     const gpsIcon = L.divIcon({
       className: '',
       html: `<div class="gps-dot"><div class="gps-dot-pulse"></div><div class="gps-dot-inner"></div></div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
+      iconSize: [24, 24], iconAnchor: [12, 12],
     });
     _gpsMarker = L.marker([lat, lng], { icon: gpsIcon, zIndexOffset: 1000 }).addTo(_map);
   } else {
     _gpsMarker.setLatLng([lat, lng]);
   }
-
-  if (_autoPan) {
-    _map.panTo([lat, lng], { animate: true, duration: 0.5 });
-  }
-
-  // Update mini map too
-  if (_miniMap) {
-    _miniMap.panTo([lat, lng]);
-  }
+  if (_autoPan) _map.panTo([lat, lng], { animate: true, duration: 0.5 });
+  if (_miniMap)  _miniMap.panTo([lat, lng]);
 };
 
 window.addTrailPoint = function(lat, lng) {
   if (!_map) return;
   if (!_trailLayer) {
-    _trailLayer = L.polyline([[lat, lng]], {
-      color: '#FF9800',
-      weight: 3,
-      opacity: 0.9,
-    }).addTo(_map);
+    _trailLayer = L.polyline([[lat, lng]], { color: '#FF9800', weight: 3, opacity: 0.9 }).addTo(_map);
   } else {
     _trailLayer.addLatLng([lat, lng]);
   }
-  // Update mini map trail
-  if (_miniMap && _miniTrailLayer) {
-    _miniTrailLayer.addLatLng([lat, lng]);
-  }
+  if (_miniMap && _miniTrailLayer) _miniTrailLayer.addLatLng([lat, lng]);
 };
 
 window.clearTrail = function() {
-  if (_trailLayer) {
-    _map.removeLayer(_trailLayer);
-    _trailLayer = null;
-  }
-  if (_miniMap && _miniTrailLayer) {
-    _miniMap.removeLayer(_miniTrailLayer);
-    _miniTrailLayer = null;
-  }
+  if (_trailLayer) { _map.removeLayer(_trailLayer); _trailLayer = null; }
+  if (_miniMap && _miniTrailLayer) { _miniMap.removeLayer(_miniTrailLayer); _miniTrailLayer = null; }
 };
 
 // ── Locate me ─────────────────────────────────────────────────────────────────
 function _locateMe() {
-  if (!navigator.geolocation) {
-    alert('Geolocation not supported on this device.');
-    return;
-  }
+  if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
   navigator.geolocation.getCurrentPosition(pos => {
     const { latitude, longitude } = pos.coords;
-    if (_map) {
-      _map.flyTo([latitude, longitude], 15, { animate: true, duration: 1.5 });
-    }
+    if (_map) _map.flyTo([latitude, longitude], 15, { animate: true, duration: 1.5 });
     window.updateMapGPS(latitude, longitude);
-  }, err => {
-    console.warn('[map] locate error:', err.message);
-  }, { enableHighAccuracy: true, timeout: 8000 });
+  }, err => console.warn('[map] locate error:', err.message), { enableHighAccuracy: true, timeout: 8000 });
 }
 
 // ── Auto pan toggle ────────────────────────────────────────────────────────────
 function _toggleAutoPan() {
   _autoPan = !_autoPan;
-  const btn = document.getElementById('btn-autopan');
-  if (btn) btn.classList.toggle('active', _autoPan);
+  document.getElementById('btn-autopan')?.classList.toggle('active', _autoPan);
 }
 
 // ── Hintertux glacier toggle ───────────────────────────────────────────────────
@@ -323,23 +342,19 @@ let _hintertuxLayers  = [];
 function _toggleHintertux() {
   _hintertuxVisible = !_hintertuxVisible;
   const btn = document.getElementById('btn-hintertux');
-  if (btn) btn.classList.toggle('active', _hintertuxVisible);
-
+  btn?.classList.toggle('active', _hintertuxVisible);
   if (_hintertuxVisible) {
-    // Draw Hintertux slopes/lifts if not already drawn
     if (_hintertuxLayers.length === 0) {
-      const htSlopes = state.slopes.filter(s => s.sector === 'hintertux');
-      const htLifts  = state.lifts.filter(l => l.sector === 'hintertux');
-      htSlopes.forEach(slope => {
+      state.slopes.filter(s => s.sector === 'hintertux').forEach(slope => {
         if (!slope.coordinates) return;
         const color = DIFF_COLOR[slope.difficulty] || '#888';
         const line = L.polyline(slope.coordinates, { color, weight: 3, opacity: 0.85 }).addTo(_map);
         line.bindPopup(_slopePopup(slope));
         _hintertuxLayers.push(line);
       });
-      htLifts.forEach(lift => {
+      state.lifts.filter(l => l.sector === 'hintertux').forEach(lift => {
         if (!lift.bottom || !lift.top) return;
-        _drawOneLift(lift, _map); // returns layers but we don't need to track individually
+        _drawOneLift(lift, _map);
       });
     } else {
       _hintertuxLayers.forEach(l => l.addTo(_map));
@@ -359,34 +374,19 @@ let _miniTrailLayer = null;
 function _initMiniMap() {
   const el = document.getElementById('mini-map');
   if (!el || _miniMap) return;
-
   _miniMap = L.map('mini-map', {
-    center: RESORT_CENTER,
-    zoom: 13,
-    zoomControl: false,
-    attributionControl: false,
-    dragging: false,
-    scrollWheelZoom: false,
-    doubleClickZoom: false,
-    touchZoom: false,
+    center: RESORT_CENTER, zoom: 13,
+    zoomControl: false, attributionControl: false,
+    dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false,
   });
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    opacity: 0.85,
-  }).addTo(_miniMap);
-
-  // Draw slope outlines on mini map too
-  if (state.slopes) {
-    state.slopes.forEach(slope => {
-      if (!slope.coordinates) return;
-      L.polyline(slope.coordinates, {
-        color: DIFF_COLOR[slope.difficulty] || '#888',
-        weight: 1.5,
-        opacity: 0.6,
-      }).addTo(_miniMap);
-    });
-  }
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 0.85 }).addTo(_miniMap);
+  const slopesToDraw = state.osmSlopes || state.slopes || [];
+  slopesToDraw.forEach(slope => {
+    if (!slope.coordinates) return;
+    L.polyline(slope.coordinates, {
+      color: DIFF_COLOR[slope.difficulty] || '#888', weight: 1.5, opacity: 0.6,
+    }).addTo(_miniMap);
+  });
 }
 
 // ── Highlight tour ────────────────────────────────────────────────────────────
@@ -397,30 +397,20 @@ const TOUR_SLOPES = {
   alt: ['s01', 's34', 's30', 's41', 's50'],
   fun: ['s16', 's34', 's10'],
 };
-
 let _tourHighlights = [];
 
 window.highlightTour = function(tourId) {
-  // Clear previous highlights
   _tourHighlights.forEach(l => _map && _map.removeLayer(l));
   _tourHighlights = [];
-
   const ids = TOUR_SLOPES[tourId] || [];
   if (!_map) return;
-
   ids.forEach(id => {
     const slope = state.slopes.find(s => s.id === id);
     if (!slope || !slope.coordinates) return;
-    const l = L.polyline(slope.coordinates, {
-      color: '#FFD740',
-      weight: 6,
-      opacity: 0.8,
-    }).addTo(_map);
+    const l = L.polyline(slope.coordinates, { color: '#FFD740', weight: 6, opacity: 0.8 }).addTo(_map);
     _tourHighlights.push(l);
   });
-
   if (_tourHighlights.length > 0) {
-    const group = L.featureGroup(_tourHighlights);
-    _map.fitBounds(group.getBounds().pad(0.1));
+    _map.fitBounds(L.featureGroup(_tourHighlights).getBounds().pad(0.1));
   }
 };

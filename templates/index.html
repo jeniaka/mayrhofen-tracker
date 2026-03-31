@@ -13,11 +13,13 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <link rel="icon" href="/static/icons/favicon.ico">
 
-  <!-- Language flash fix -->
+  <!-- Language + theme flash fix -->
   <script>
     (function(){
       var lang = localStorage.getItem('mt_lang') || 'en';
       document.documentElement.setAttribute('lang', lang);
+      var theme = localStorage.getItem('mt_theme') || 'dark';
+      if (theme === 'light') document.documentElement.classList.add('light-mode');
     })();
   </script>
 
@@ -76,6 +78,7 @@
   <!-- ── App Header ──────────────────────────────────────────────────── -->
   <header class="app-header">
     <span class="app-logo">&#x1F3D4; MayrhofenTracker</span>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light mode">&#x1F319;</button>
     <div class="user-menu" id="user-menu">
       <button class="avatar-btn" id="avatar-btn" aria-label="User menu" aria-haspopup="true" aria-expanded="false"></button>
       <div class="dropdown-menu" id="dropdown-menu" role="menu">
@@ -89,6 +92,7 @@
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" role="menuitem" id="menu-settings">&#x2699;&#xFE0F;&nbsp; Settings</a>
         <a class="dropdown-item" role="menuitem" id="menu-units">&#x1F4D0;&nbsp; Units: <span id="current-units">Metric</span></a>
+        <a class="dropdown-item" role="menuitem" id="menu-lang">&#x1F310;&nbsp; Language: <span id="current-lang">EN</span></a>
         <div class="dropdown-divider"></div>
         <a class="dropdown-item logout-item" role="menuitem" id="menu-logout">&#x1F6AA;&nbsp; Log Out</a>
       </div>

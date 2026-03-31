@@ -232,6 +232,18 @@ class Handler(BaseHTTPRequestHandler):
             self.json_ok(pois)
             return
 
+        # OSM resort data (real GPS coords from OpenStreetMap)
+        if path == "/api/resort-data":
+            data_dir = os.path.join(BASE, "static", "data")
+            result = {"slopes": [], "lifts": [], "pois": []}
+            for key, fname in [("slopes","osm_slopes.json"),("lifts","osm_lifts.json"),("pois","osm_pois.json")]:
+                fp = os.path.join(data_dir, fname)
+                if os.path.isfile(fp):
+                    with open(fp, "r", encoding="utf-8") as f:
+                        result[key] = json.load(f)
+            self.json_ok(result)
+            return
+
         if path == "/api/resort/all":
             sector = qs.get("sector", [None])[0]
             slopes = _load_slopes()
@@ -440,51 +452,128 @@ class Handler(BaseHTTPRequestHandler):
 
 
 # ── Weather cache ─────────────────────────────────────────────────────────────
-_weather_cache     = None
-_weather_cache_ts  = 0
-_WEATHER_TTL       = 30 * 60  # 30 minutes
-_weather_lock      = threading.Lock()
+_weather_cache    = None
+_weather_cache_ts = 0
+_WEATHER_TTL      = 30 * 60   # 30 minutes
+_weather_lock     = threading.Lock()
+
+_WMO = {
+    0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",
+    45:"Foggy",48:"Icy fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",
+    61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",
+    75:"Heavy snow",77:"Snow grains",80:"Rain showers",81:"Showers",
+    82:"Heavy showers",85:"Snow showers",86:"Heavy snow showers",
+    95:"Thunderstorm",96:"Thunderstorm+hail",99:"Severe thunderstorm",
+}
+
+def _fetch_weatherapi(api_key):
+    import urllib.request as _ur
+    url = (f"https://api.weatherapi.com/v1/forecast.json"
+           f"?key={api_key}&q=47.1692,11.8651&days=3&aqi=no")
+    req = _ur.Request(url, headers={"User-Agent": "MayrhofenTracker/1.0"})
+    with _ur.urlopen(req, timeout=10) as r:
+        raw = json.loads(r.read())
+    cur = raw.get("current", {})
+    days = raw.get("forecast", {}).get("forecastday", [])
+    return {
+        "current": {
+            "temperature":     cur.get("temp_c"),
+            "feels_like":      cur.get("feelslike_c"),
+            "humidity":        cur.get("humidity"),
+            "wind_kph":        cur.get("wind_kph"),
+            "wind_gust_kph":   cur.get("gust_kph"),
+            "condition":       cur.get("condition", {}).get("text", ""),
+            "condition_icon":  "https:" + cur.get("condition", {}).get("icon", "") if cur.get("condition", {}).get("icon") else "",
+            "is_day":          cur.get("is_day", 1),
+        },
+        "forecast": [{
+            "date":            d.get("date"),
+            "max_temp":        d.get("day", {}).get("maxtemp_c"),
+            "min_temp":        d.get("day", {}).get("mintemp_c"),
+            "condition":       d.get("day", {}).get("condition", {}).get("text", ""),
+            "condition_icon":  "https:" + d.get("day", {}).get("condition", {}).get("icon", "") if d.get("day", {}).get("condition", {}).get("icon") else "",
+            "chance_of_snow":  d.get("day", {}).get("daily_chance_of_snow", 0),
+            "total_snow_cm":   d.get("day", {}).get("totalsnow_cm", 0),
+        } for d in days],
+        "source": "weatherapi.com",
+        "_cached_age_s": 0,
+    }
+
+def _fetch_open_meteo():
+    import urllib.request as _ur
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        "?latitude=47.1692&longitude=11.8651"
+        "&current=temperature_2m,relative_humidity_2m,apparent_temperature"
+        ",weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m"
+        "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset"
+        ",snowfall_sum,weather_code"
+        "&timezone=Europe%2FVienna&forecast_days=3"
+    )
+    req = _ur.Request(url, headers={"User-Agent": "MayrhofenTracker/1.0"})
+    with _ur.urlopen(req, timeout=10) as r:
+        raw = json.loads(r.read())
+    cur   = raw.get("current", {})
+    daily = raw.get("daily", {})
+    wcode = cur.get("weather_code", 0)
+    forecast = []
+    for i, date in enumerate(daily.get("time", [])):
+        dc = (daily.get("weather_code") or [])[i] if i < len(daily.get("weather_code") or []) else 0
+        snow = (daily.get("snowfall_sum") or [])[i] if i < len(daily.get("snowfall_sum") or []) else 0
+        forecast.append({
+            "date":           date,
+            "max_temp":       (daily.get("temperature_2m_max") or [])[i] if i < len(daily.get("temperature_2m_max") or []) else None,
+            "min_temp":       (daily.get("temperature_2m_min") or [])[i] if i < len(daily.get("temperature_2m_min") or []) else None,
+            "condition":      _WMO.get(dc, "Unknown"),
+            "condition_icon": "",
+            "chance_of_snow": 100 if snow and snow > 0 else 0,
+            "total_snow_cm":  (snow or 0) / 10,  # mm → cm
+        })
+    return {
+        "current": {
+            "temperature":    cur.get("temperature_2m"),
+            "feels_like":     cur.get("apparent_temperature"),
+            "humidity":       cur.get("relative_humidity_2m"),
+            "wind_kph":       cur.get("wind_speed_10m"),
+            "wind_gust_kph":  cur.get("wind_gusts_10m"),
+            "condition":      _WMO.get(wcode, "Unknown"),
+            "condition_icon": "",
+            "is_day":         1,
+        },
+        "forecast": forecast,
+        "source": "open-meteo.com",
+        "_cached_age_s": 0,
+    }
 
 def _get_weather():
     global _weather_cache, _weather_cache_ts
     now = time.time()
-    # Fast path — serve from cache without acquiring lock
     if _weather_cache and (now - _weather_cache_ts) < _WEATHER_TTL:
-        age = int(now - _weather_cache_ts)
-        return {**_weather_cache, "_cached_age_s": age}
-    # Slow path — lock prevents concurrent fetches (avoids 429 on cold start)
+        return {**_weather_cache, "_cached_age_s": int(now - _weather_cache_ts)}
     with _weather_lock:
-        # Re-check: another thread may have fetched while we waited for the lock
         if _weather_cache and (now - _weather_cache_ts) < _WEATHER_TTL:
-            age = int(now - _weather_cache_ts)
-            return {**_weather_cache, "_cached_age_s": age}
-        try:
-            url = (
-                "https://api.open-meteo.com/v1/forecast"
-                "?latitude=47.1692&longitude=11.8651"
-                "&current=temperature_2m,relative_humidity_2m,apparent_temperature"
-                ",weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m"
-                "&hourly=temperature_2m,weather_code,wind_speed_10m,snowfall"
-                "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset"
-                ",snowfall_sum,weather_code"
-                "&timezone=Europe%2FVienna&forecast_days=3"
-            )
-            import urllib.request as _ur
-            req = _ur.Request(url, headers={"User-Agent": "MayrhofenTracker/1.0 (ski tracking app)"})
-            with _ur.urlopen(req, timeout=10) as r:
-                data = json.loads(r.read())
-            data["_fetched_at"] = int(now)
-            data["_cached_age_s"] = 0
+            return {**_weather_cache, "_cached_age_s": int(now - _weather_cache_ts)}
+        data = None
+        api_key = os.environ.get("WEATHER_API_KEY", "")
+        if api_key:
+            try:
+                data = _fetch_weatherapi(api_key)
+                print(f"[weather] fetched from WeatherAPI.com")
+            except Exception as e:
+                print(f"[weather] WeatherAPI.com error: {e}")
+        if not data:
+            try:
+                data = _fetch_open_meteo()
+                print(f"[weather] fetched from Open-Meteo")
+            except Exception as e:
+                print(f"[weather] Open-Meteo error: {e}")
+        if data:
             _weather_cache    = data
             _weather_cache_ts = now
-            print(f"[weather] fetched fresh data at {datetime.utcnow().isoformat()}")
             return data
-        except Exception as e:
-            print(f"[weather] fetch error: {e}")
-            if _weather_cache:
-                age = int(now - _weather_cache_ts)
-                return {**_weather_cache, "_cached_age_s": age, "_stale": True}
-            return {"error": str(e)}
+        if _weather_cache:
+            return {**_weather_cache, "_cached_age_s": int(now - _weather_cache_ts), "_stale": True}
+        return {"error": "Weather temporarily unavailable"}
 
 # ── Seed ─────────────────────────────────────────────────────────────────────
 def _run_seed(force=False):

@@ -1,66 +1,39 @@
-/* ── MayrhofenTracker — weather ──────────────────────────────────────────────── */
+/* ── MayrhofenTracker — weather rendering ─────────────────────────────────── */
 
-const WMO_CODES = {
-  0:  ['Clear sky',       '☀️'],
-  1:  ['Mainly clear',    '🌤️'],
-  2:  ['Partly cloudy',   '⛅'],
-  3:  ['Overcast',        '☁️'],
-  45: ['Foggy',           '🌫️'],
-  48: ['Icy fog',         '🌫️'],
-  51: ['Light drizzle',   '🌦️'],
-  53: ['Drizzle',         '🌦️'],
-  55: ['Heavy drizzle',   '🌧️'],
-  61: ['Light rain',      '🌧️'],
-  63: ['Rain',            '🌧️'],
-  65: ['Heavy rain',      '🌧️'],
-  71: ['Light snow',      '🌨️'],
-  73: ['Moderate snow',   '❄️'],
-  75: ['Heavy snow',      '⛄'],
-  77: ['Snow grains',     '🌨️'],
-  80: ['Rain showers',    '🌦️'],
-  81: ['Rain showers',    '🌧️'],
-  82: ['Heavy showers',   '🌧️'],
-  85: ['Snow showers',    '🌨️'],
-  86: ['Heavy snow shower','⛄'],
-  95: ['Thunderstorm',    '⛈️'],
-  96: ['Thunderstorm',    '⛈️'],
-  99: ['Thunderstorm',    '⛈️'],
-};
-
-function _wmoDesc(code) {
-  if (WMO_CODES[code]) return WMO_CODES[code];
-  const keys = Object.keys(WMO_CODES).map(Number).sort((a, b) => a - b);
-  const closest = keys.find(k => k >= code) ?? keys[keys.length - 1];
-  return WMO_CODES[closest] || ['Unknown', '🌡️'];
+// Condition text → emoji (used when WeatherAPI icon not available)
+function _condEmoji(text) {
+  if (!text) return '🌡️';
+  const t = text.toLowerCase();
+  if (t.includes('thunder')) return '⛈️';
+  if (t.includes('heavy snow') || t.includes('blizzard')) return '⛄';
+  if (t.includes('snow shower')) return '🌨️';
+  if (t.includes('snow') || t.includes('sleet') || t.includes('ice')) return '❄️';
+  if (t.includes('heavy rain') || t.includes('heavy shower')) return '🌧️';
+  if (t.includes('rain') || t.includes('shower') || t.includes('drizzle')) return '🌦️';
+  if (t.includes('fog') || t.includes('mist') || t.includes('haze')) return '🌫️';
+  if (t.includes('overcast') || t.includes('cloudy')) return '☁️';
+  if (t.includes('partly') || t.includes('mostly cloudy')) return '⛅';
+  if (t.includes('clear') || t.includes('sunny')) return '☀️';
+  return '🌤️';
 }
 
 function _dayLabel(dateStr, idx) {
   if (idx === 0) return 'Today';
   if (idx === 1) return 'Tomorrow';
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en', { weekday: 'short' });
+  try { return new Date(dateStr + 'T12:00:00').toLocaleDateString('en', { weekday: 'short' }); }
+  catch { return dateStr; }
 }
 
-function _windDir(deg) {
-  if (deg == null) return '';
-  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
-  return dirs[Math.round(deg / 45) % 8];
+function _ageLabel(s) {
+  if (!s || s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  return `${Math.floor(s / 3600)}h ago`;
 }
 
-function _fmtTime(iso) {
-  if (!iso) return '—';
-  return iso.slice(11, 16);
-}
-
-function _ageLabel(ageS) {
-  if (ageS < 60) return 'just now';
-  if (ageS < 3600) return `${Math.floor(ageS / 60)} min ago`;
-  return `${Math.floor(ageS / 3600)}h ago`;
-}
-
-window._loadWeather = async function () {
+window._loadWeather = async function() {
   const el = document.getElementById('weather-content');
   if (!el) return;
-  el.innerHTML = '<span class="muted">Loading weather...</span>';
+  el.innerHTML = '<span class="muted">Loading weather…</span>';
   try {
     const res = await fetch('/api/weather');
     if (!res.ok) { el.innerHTML = '<span class="muted">Weather unavailable</span>'; return; }
@@ -74,64 +47,65 @@ window._loadWeather = async function () {
 };
 
 function _renderWeather(el, data) {
-  const cur   = data.current || {};
-  const daily = data.daily   || {};
-  const ageS  = data._cached_age_s ?? 0;
-  const stale = data._stale ? ' ⚠️ stale' : '';
+  const cur    = data.current  || {};
+  const fcDays = data.forecast || [];
+  const ageS   = data._cached_age_s ?? 0;
+  const stale  = data._stale ? ' ⚠️' : '';
 
-  const temp     = Math.round(cur.temperature_2m ?? 0);
-  const feels    = Math.round(cur.apparent_temperature ?? temp);
-  const humidity = Math.round(cur.relative_humidity_2m ?? 0);
-  const wind     = Math.round(cur.wind_speed_10m ?? 0);
-  const gusts    = Math.round(cur.wind_gusts_10m ?? 0);
-  const windDir  = _windDir(cur.wind_direction_10m);
-  const code     = cur.weather_code ?? 0;
-  const [desc, icon] = _wmoDesc(code);
+  const temp     = cur.temperature != null ? Math.round(cur.temperature) : '—';
+  const feels    = cur.feels_like  != null ? Math.round(cur.feels_like)  : null;
+  const wind     = cur.wind_kph    != null ? Math.round(cur.wind_kph)    : '—';
+  const gusts    = cur.wind_gust_kph != null ? Math.round(cur.wind_gust_kph) : null;
+  const humidity = cur.humidity    != null ? Math.round(cur.humidity)    : '—';
+  const condition = cur.condition  || '';
+  const icon      = cur.condition_icon;
 
-  const days     = (daily.time || []).slice(0, 3);
-  const sunrise  = daily.sunrise?.[0]  ? _fmtTime(daily.sunrise[0])  : '—';
-  const sunset   = daily.sunset?.[0]   ? _fmtTime(daily.sunset[0])   : '—';
-
-  // Snow alert: any snowfall expected in next 24h
-  const snow24h  = (daily.snowfall_sum?.[0] ?? 0);
-  const snowBadge = snow24h > 0
-    ? `<div class="snow-badge">❄️ SNOW EXPECTED — ${snow24h.toFixed(0)} mm today</div>`
+  // Snow badge — any snow expected today or tomorrow?
+  const snowDays = fcDays.filter(d => (d.total_snow_cm > 0 || d.chance_of_snow > 0));
+  const snowBadge = snowDays.length > 0
+    ? `<div class="snow-badge">❄️ SNOW EXPECTED — ${snowDays[0].total_snow_cm?.toFixed(1) || ''}cm</div>`
     : '';
 
-  const forecastCards = days.map((d, i) => {
-    const maxT = Math.round(daily.temperature_2m_max?.[i] ?? 0);
-    const minT = Math.round(daily.temperature_2m_min?.[i] ?? 0);
-    const snowD = (daily.snowfall_sum?.[i] ?? 0);
-    const wc   = daily.weather_code?.[i] ?? 0;
-    const [, dayIcon] = _wmoDesc(wc);
+  // Current icon
+  const iconHtml = icon
+    ? `<img src="${icon}" alt="${condition}" class="weather-icon-img" loading="lazy">`
+    : `<span class="weather-emoji">${_condEmoji(condition)}</span>`;
+
+  // 3-day forecast
+  const forecastHtml = fcDays.slice(0, 3).map((d, i) => {
+    const dayIcon = d.condition_icon
+      ? `<img src="${d.condition_icon}" alt="" loading="lazy" style="width:32px;height:32px">`
+      : `<span style="font-size:24px">${_condEmoji(d.condition)}</span>`;
+    const snowNote = d.total_snow_cm > 0
+      ? `<div class="forecast-snow">❄ ${d.total_snow_cm.toFixed(1)}cm</div>`
+      : '';
     return `
-      <div class="weather-day">
-        <div class="day-name">${_dayLabel(d, i)}</div>
-        <div class="day-icon">${dayIcon}</div>
-        <div class="day-temp">${maxT}° / ${minT}°</div>
-        ${snowD > 0 ? `<div class="day-snow">❄ ${snowD.toFixed(0)}mm</div>` : ''}
+      <div class="forecast-day">
+        <div class="day-name">${_dayLabel(d.date, i)}</div>
+        <div class="day-icon-wrap">${dayIcon}</div>
+        <div class="day-temp">${Math.round(d.max_temp ?? 0)}° / ${Math.round(d.min_temp ?? 0)}°</div>
+        ${snowNote}
       </div>`;
   }).join('');
 
   el.innerHTML = `
     ${snowBadge}
     <div class="weather-current">
-      <span class="weather-icon">${icon}</span>
+      <div class="weather-icon-wrap">${iconHtml}</div>
       <div class="weather-main">
         <div class="weather-temp">${temp}°C</div>
-        <div class="weather-feels">Feels like ${feels}°C</div>
-        <div class="weather-desc">${desc}</div>
+        ${feels != null ? `<div class="weather-feels">Feels like ${feels}°C</div>` : ''}
+        <div class="weather-desc">${condition}</div>
       </div>
     </div>
     <div class="weather-details-row">
-      <span>💨 ${wind} km/h ${windDir}</span>
-      <span>💥 Gusts ${gusts} km/h</span>
+      <span>💨 ${wind} km/h</span>
+      ${gusts != null ? `<span>💥 Gusts ${gusts} km/h</span>` : ''}
       <span>💧 ${humidity}%</span>
     </div>
-    <div class="weather-details-row" style="margin-top:4px">
-      <span>🌅 ${sunrise}</span>
-      <span>🌇 ${sunset}</span>
-      <span class="weather-updated">Updated ${_ageLabel(ageS)}${stale}</span>
-    </div>
-    <div class="weather-forecast">${forecastCards}</div>`;
+    <div class="forecast-row">${forecastHtml}</div>
+    <div class="weather-footer">
+      Updated ${_ageLabel(ageS)}${stale}
+      <span class="weather-source">${data.source || ''}</span>
+    </div>`;
 }

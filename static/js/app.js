@@ -40,6 +40,53 @@ window.addEventListener('popstate', e => {
   switchTab(tab);
 });
 
+// ── Theme ──────────────────────────────────────────────────────────────────────
+window.toggleTheme = function() {
+  const isLight = document.documentElement.classList.toggle('light-mode');
+  localStorage.setItem('mt_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+};
+
+// Apply saved theme icon on boot (class already applied by inline script)
+function _initTheme() {
+  const isLight = document.documentElement.classList.contains('light-mode');
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    btn.textContent = isLight ? '☀️' : '🌙';
+    btn.addEventListener('click', toggleTheme);
+  }
+}
+
+// ── Language ───────────────────────────────────────────────────────────────────
+window.setLang = function(lang) {
+  state.lang = lang;
+  localStorage.setItem('mt_lang', lang);
+  document.documentElement.setAttribute('lang', lang);
+  _savePreference('language', lang);
+  // Update dropdown label
+  const label = document.getElementById('current-lang');
+  if (label) label.textContent = lang.toUpperCase();
+  // Update nav labels
+  const navLabels = { home: t('home'), map: t('map'), tracking: t('tracking'), stats: t('stats'), profile: t('profile') };
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    const tabName = btn.dataset.tab;
+    const span = btn.querySelector('span');
+    if (span && navLabels[tabName]) span.textContent = navLabels[tabName];
+  });
+  // Update lang select if on profile tab
+  const langSel = document.getElementById('lang-select');
+  if (langSel) langSel.value = lang;
+};
+
+function _cycleLang() {
+  const langs = ['en', 'de', 'he'];
+  const current = state.lang || 'en';
+  const next = langs[(langs.indexOf(current) + 1) % langs.length];
+  setLang(next);
+  closeUserMenu();
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.__LOGGED_IN__) {
@@ -50,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
 
+  _initTheme();
   _initProfile();
   _initNav();
   _loadResortData();
@@ -146,11 +194,17 @@ function _initProfile() {
   const btnAvatar   = document.getElementById('avatar-btn');
   const btnSettings = document.getElementById('menu-settings');
   const btnUnits    = document.getElementById('menu-units');
+  const btnLang     = document.getElementById('menu-lang');
   const btnLogout   = document.getElementById('menu-logout');
   if (btnAvatar)   btnAvatar.addEventListener('click', e => { e.stopPropagation(); toggleUserMenu(); });
   if (btnSettings) btnSettings.addEventListener('click', () => { navigateTo('/profile'); closeUserMenu(); });
   if (btnUnits)    btnUnits.addEventListener('click', _toggleUnitsMenu);
+  if (btnLang)     btnLang.addEventListener('click', _cycleLang);
   if (btnLogout)   btnLogout.addEventListener('click', () => { window.location.href = '/auth/logout'; });
+
+  // Init lang label in dropdown
+  const langLabel = document.getElementById('current-lang');
+  if (langLabel) langLabel.textContent = (state.lang || 'en').toUpperCase();
 
   // Greet
   const hour  = new Date().getHours();

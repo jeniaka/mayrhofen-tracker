@@ -1,0 +1,812 @@
+[
+  {
+    "id": "osm_26793520",
+    "name": "Talstation 8er Sommerberg",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.106912,
+    "lng": 11.6748163,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793521",
+    "name": "Bergstation 8er Sommerberg",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0975034,
+    "lng": 11.6636371,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793523",
+    "name": "Gletscherbus 1",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0973756,
+    "lng": 11.663824,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793525",
+    "name": "Ramsmoos",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0943328,
+    "lng": 11.6585654,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793532",
+    "name": "Tuxerjoch",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0979745,
+    "lng": 11.6629405,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793533",
+    "name": "Tuxerjoch",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0938172,
+    "lng": 11.6473953,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793623",
+    "name": "Sommerberg",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0941998,
+    "lng": 11.6668863,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793624",
+    "name": "Sommerberg",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0967724,
+    "lng": 11.6627305,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793625",
+    "name": "Gletscherbus 2",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0969454,
+    "lng": 11.6634587,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793626",
+    "name": "Gletscherbus 2",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0774338,
+    "lng": 11.6705868,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793627",
+    "name": "Fernerhaus",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0969988,
+    "lng": 11.6636463,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793628",
+    "name": "Fernerhaus",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0773964,
+    "lng": 11.6708913,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793629",
+    "name": "Gletscherbus 3",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.077178,
+    "lng": 11.6725266,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793630",
+    "name": "Gletscherbus 3",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0626746,
+    "lng": 11.680531,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793658",
+    "name": "Gefrorene Wand",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0771745,
+    "lng": 11.6712856,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_26793782",
+    "name": "Gefrorene Wand 3b",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0636416,
+    "lng": 11.6795346,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_27337827",
+    "name": "Rastkogelbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1636727,
+    "lng": 11.7431126,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_27337851",
+    "name": "Gletscherbus 1 Talstation",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1068255,
+    "lng": 11.6749802,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_281872968",
+    "name": "8er Horbergjoch",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1805578,
+    "lng": 11.7536274,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_281872969",
+    "name": "8er Horbergjoch",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1936726,
+    "lng": 11.7638658,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_281873162",
+    "name": "6er Wanglspitz",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1854908,
+    "lng": 11.7699623,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_281874025",
+    "name": "6er Lämmerbichl",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1782666,
+    "lng": 11.731809,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_281874597",
+    "name": "6er Wanglspitz",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1848652,
+    "lng": 11.7582009,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286435660",
+    "name": "4er Nordhang",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.178858,
+    "lng": 11.7982293,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286435661",
+    "name": "6er Knorren",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1714107,
+    "lng": 11.8074313,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286435662",
+    "name": "6er Knorren",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1788124,
+    "lng": 11.8003511,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286435664",
+    "name": "6er Penken-Express",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1741303,
+    "lng": 11.8138652,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286435665",
+    "name": "Penken-Express",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1725878,
+    "lng": 11.8274234,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286436548",
+    "name": "8er Tappenalmbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1834556,
+    "lng": 11.8083451,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286436550",
+    "name": "8er Tappenalmbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1825603,
+    "lng": 11.80027,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286436733",
+    "name": "150er Tux",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1843346,
+    "lng": 11.7751349,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_286436736",
+    "name": "150er Tux",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1786764,
+    "lng": 11.7956581,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738747",
+    "name": "4er Sunjet",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1788278,
+    "lng": 11.7977938,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738749",
+    "name": "4er Sunjet",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1824687,
+    "lng": 11.7942614,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738755",
+    "name": "6er Schneekar",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1912012,
+    "lng": 11.7922372,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738757",
+    "name": "6er Unterbergalm",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.196027,
+    "lng": 11.7999034,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738758",
+    "name": "6er Unterbergalm",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1913106,
+    "lng": 11.7915417,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738759",
+    "name": "6er Gerent",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1917121,
+    "lng": 11.8156622,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738760",
+    "name": "6er Gerent",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.191284,
+    "lng": 11.7927727,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738762",
+    "name": "4er Lärchwald-Express",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1835391,
+    "lng": 11.8086225,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738763",
+    "name": "4er Lärchwald-Express",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1755334,
+    "lng": 11.8154713,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738767",
+    "name": "6er Katzenmoos",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1603121,
+    "lng": 11.7857862,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320738769",
+    "name": "6er Katzenmoos",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1688551,
+    "lng": 11.7991867,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320765602",
+    "name": "Eggalm Nord",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1726961,
+    "lng": 11.7234993,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_320765604",
+    "name": "Eggalm Nord",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1638094,
+    "lng": 11.7036078,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_321386514",
+    "name": "Gefrorene Wand 3b",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0679369,
+    "lng": 11.6712313,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_344469170",
+    "name": "Penkenbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1634171,
+    "lng": 11.8606363,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_357164610",
+    "name": "8er Ahorn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1352487,
+    "lng": 11.8641551,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_357164613",
+    "name": "8er Ahorn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1356007,
+    "lng": 11.8728671,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_357164672",
+    "name": "Ahornbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1603521,
+    "lng": 11.8597265,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_357164673",
+    "name": "Ahornbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1365629,
+    "lng": 11.870503,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_366064529",
+    "name": "Penkenkuli",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1735125,
+    "lng": 11.8281274,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_604975365",
+    "name": "Eggalmbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1571049,
+    "lng": 11.7285311,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_604975384",
+    "name": "Bergstation Eggalmbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1626581,
+    "lng": 11.7125372,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_604975385",
+    "name": "Lattenalm",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1658175,
+    "lng": 11.7238338,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_604975387",
+    "name": "Lattenalm",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1632683,
+    "lng": 11.7102427,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_660751978",
+    "name": "6er Ebenwald",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1435366,
+    "lng": 11.8535593,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_660751979",
+    "name": "6er Ebenwald",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.135774,
+    "lng": 11.8638067,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_822581994",
+    "name": "Stoankasern",
+    "type": "restaurant",
+    "sector": "mayrhofen",
+    "lat": 47.14466,
+    "lng": 11.6734379,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_829910023",
+    "name": "Bichlalm",
+    "type": "restaurant",
+    "sector": "mayrhofen",
+    "lat": 47.1188326,
+    "lng": 11.6791246,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1130068869",
+    "name": "4er Nordhang",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1694429,
+    "lng": 11.7991394,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1131342548",
+    "name": "Kombibahn Penken",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1759633,
+    "lng": 11.81604,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1131342767",
+    "name": "Kombibahn Penken",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1756554,
+    "lng": 11.8275372,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1132785818",
+    "name": "Ramsmoos",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0974201,
+    "lng": 11.6627891,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1201851263",
+    "name": "Lärmstange 1",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0865274,
+    "lng": 11.6608962,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1437733008",
+    "name": "Hasenmulde II",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1675991,
+    "lng": 11.8060964,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1523482043",
+    "name": "Bergstation Arbiskogel",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1989751,
+    "lng": 11.910961,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1523482141",
+    "name": "Sonnalm",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.2095553,
+    "lng": 11.8972597,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_1620496977",
+    "name": "Lattenalm",
+    "type": "restaurant",
+    "sector": "mayrhofen",
+    "lat": 47.1644733,
+    "lng": 11.7241766,
+    "description": "regional",
+    "hours": ""
+  },
+  {
+    "id": "osm_2183940164",
+    "name": "Hasenmulde I",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1682499,
+    "lng": 11.8050334,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_2629770765",
+    "name": "6er Lämmerbichl",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1878608,
+    "lng": 11.7459855,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_2896052155",
+    "name": "Talstation Materialseilbahn Gasthaus Zimmereben",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1739169,
+    "lng": 11.8618464,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_3933454943",
+    "name": "Lärmstange 2",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.062855,
+    "lng": 11.6581363,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_3933454944",
+    "name": "Lärmstange 2",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0720428,
+    "lng": 11.6609189,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_3933915383",
+    "name": "Penkenkuli",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1749417,
+    "lng": 11.8277557,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_5525822680",
+    "name": "Penkenbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1754503,
+    "lng": 11.8293403,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_5892929285",
+    "name": "Rieserhütte",
+    "type": "restaurant",
+    "sector": "mayrhofen",
+    "lat": 47.2199846,
+    "lng": 11.8365471,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_6140938072",
+    "name": "Talstation Möslbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.2059198,
+    "lng": 11.8189032,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_6140938073",
+    "name": "Mittelstation Möslbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.2028183,
+    "lng": 11.8168734,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_6140938074",
+    "name": "Bergstation Möslbahn",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.1929885,
+    "lng": 11.8103409,
+    "description": "",
+    "hours": ""
+  },
+  {
+    "id": "osm_9686566398",
+    "name": "Lärmstange 1",
+    "type": "attraction",
+    "sector": "mayrhofen",
+    "lat": 47.0713379,
+    "lng": 11.6602536,
+    "description": "",
+    "hours": ""
+  }
+]
